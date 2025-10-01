@@ -1,60 +1,67 @@
 //
-//  ContentView.swift
+//  DashboardView.swift
 //  WorkoutTracker
 //
-//  Created by Evan Nelson on 9/23/25.
+//  Created by Evan Nelson on 9/30/25.
 //
 
 import SwiftUI
+import Charts
 
-struct ContentView: View {
-    // Example dummy workout data
+struct DashboardView: View {
+    // Dummy workout data for now
     struct WorkoutEntry: Identifiable {
         let id = UUID()
         let exercise: String
         let weight: Double
         let reps: Int
+        let date: Date
     }
-    
+
     let entries: [WorkoutEntry] = [
-        WorkoutEntry(exercise: "Bench Press", weight: 185, reps: 5),
-        WorkoutEntry(exercise: "Squat", weight: 225, reps: 8),
-        WorkoutEntry(exercise: "Deadlift", weight: 315, reps: 3)
+        WorkoutEntry(exercise: "Bench Press", weight: 185, reps: 5, date: .now),
+        WorkoutEntry(exercise: "Squat", weight: 225, reps: 8, date: .now),
+        WorkoutEntry(exercise: "Deadlift", weight: 315, reps: 3, date: .now)
     ]
-    
+
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 20) {
                     
-                    // MARK: - App Logo
+                    // MARK: - Logo
                     Image("AppLogo")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 150, height: 150)
+                        .frame(width: 120, height: 120)
                         .clipShape(RoundedRectangle(cornerRadius: 24))
                         .shadow(radius: 8)
                         .padding(.top)
-                    
-                    // MARK: - Welcome Text
-                    Text("Welcome to WorkoutUploader!")
-                        .font(.title)
-                        .bold()
-                        .padding(.bottom, 10)
-                    
-                    // MARK: - Chart Placeholder
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 300)
-                        .cornerRadius(12)
-                        .padding(.horizontal)
-                    
-                    // MARK: - Recent Workouts
+
+                    // MARK: - Chart Section
+                    VStack(alignment: .leading) {
+                        Text("Progress Chart")
+                            .font(.headline)
+                            .padding(.bottom, 8)
+
+                        Chart(entries) { entry in
+                            BarMark(
+                                x: .value("Exercise", entry.exercise),
+                                y: .value("Weight", entry.weight)
+                            )
+                        }
+                        .frame(height: 200)
+                    }
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(16)
+                    .shadow(radius: 4)
+
+                    // MARK: - Workout List
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Recent Workouts")
                             .font(.headline)
-                            .padding(.horizontal)
-                        
+
                         ForEach(entries) { entry in
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(entry.exercise)
@@ -68,23 +75,19 @@ struct ContentView: View {
                             .background(Color(.systemGray6))
                             .cornerRadius(12)
                             .shadow(radius: 2)
-                            .padding(.horizontal)
                         }
                     }
-                    
-                    Spacer()
+                    .padding(.horizontal)
                 }
-                .padding(.bottom)
+                .padding()
             }
             .navigationTitle("Dashboard")
         }
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
+struct DashboardView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        DashboardView()
     }
 }
-
-
