@@ -11,6 +11,7 @@ struct AddWorkoutView: View {
     @EnvironmentObject var workoutData: WorkoutData
     @Environment(\.dismiss) var dismiss
     
+    @State private var muscleGroup = ""
     @State private var exercise = ""
     @State private var weight = ""
     @State private var reps = ""
@@ -22,6 +23,7 @@ struct AddWorkoutView: View {
         NavigationView {
             Form {
                 Section("Exercise Info") {
+                    TextField("Muscle Group (e.g., Back, Legs, Chest)", text: $muscleGroup)
                     TextField("Exercise", text: $exercise)
                     TextField("Weight (lbs)", text: $weight)
                         .keyboardType(.decimalPad)
@@ -32,9 +34,14 @@ struct AddWorkoutView: View {
                 }
                 
                 Button("Save") {
+                    let cleanExercise = exercise.trimmingCharacters(in: .whitespacesAndNewlines).capitalized
+                    let cleanMuscleGroup = muscleGroup.trimmingCharacters(in: .whitespacesAndNewlines).capitalized
+
+
                     let entry = WorkoutEntry(
                         date: Date(),
-                        exercise: exercise,
+                        muscleGroup: cleanMuscleGroup,
+                        exercise: cleanExercise,
                         weight: Double(weight) ?? 0,
                         reps: Int(reps) ?? 0,
                         heartRate: Double(heartRate)

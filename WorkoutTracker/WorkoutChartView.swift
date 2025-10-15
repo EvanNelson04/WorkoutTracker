@@ -11,20 +11,28 @@ import Charts
 struct WorkoutChartView: View {
     @EnvironmentObject var workoutData: WorkoutData
     @State private var selectedExercise: String? = nil
-    
+
     var body: some View {
         VStack {
-            // Picker to select exercise
+            // Picker grouped by muscle group
             Picker("Select Exercise", selection: $selectedExercise) {
                 Text("Select Exercise").tag(String?.none)
-                ForEach(uniqueExercises(), id: \.self) { exercise in
-                    Text(exercise).tag(String?.some(exercise))
+                
+                // Group exercises by muscle group
+                ForEach(groupedExercises.keys.sorted(), id: \.self) { group in
+                    // Group label (e.g., Back, Chest)
+                    Text("— \(group) —")
+                        .font(.headline)
+                    
+                    ForEach(groupedExercises[group] ?? [], id: \.self) { exercise in
+                        Text(exercise).tag(String?.some(exercise))
+                    }
                 }
             }
             .pickerStyle(MenuPickerStyle())
             .padding()
-            
-            // Show chart for selected exercise
+
+            // Chart for selected exercise
             if let exercise = selectedExercise {
                 Chart {
                     ForEach(entries(for: exercise)) { entry in
@@ -68,23 +76,29 @@ struct WorkoutChartView: View {
         }
         .navigationTitle("Exercise Charts")
     }
-    
-    // Get all unique exercises
-    func uniqueExercises() -> [String] {
-        Array(Set(workoutData.entries.map { $0.exercise })).sorted()
+
+    // Group exercises by muscle group
+    var groupedExercises: [String: [String]] {
+        let grouped = Dictionary(grouping: workoutData.entries) { entry in
+            entry.muscleGroup.isEmpty ? "Other" : entry.muscleGroup
+        }
+        return grouped.mapValues { entries in
+            Array(Set(entries.map { $0.exercise })).sorted()
+        }
     }
-    
-    // Filter entries for the selected exercise
+
+    // Filter entries for selected exercise
     func entries(for exercise: String) -> [WorkoutEntry] {
         workoutData.entries
             .filter { $0.exercise == exercise }
             .sorted { $0.date < $1.date }
     }
-    
-    // Short date formatter
+
+    // Format date nicely
     func shortDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .short
         return formatter.string(from: date)
     }
 }
+

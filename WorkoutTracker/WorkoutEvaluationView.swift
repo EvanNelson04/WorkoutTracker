@@ -10,6 +10,13 @@ import SwiftUI
 struct WorkoutEvaluationView: View {
     @EnvironmentObject var workoutData: WorkoutData
     
+    // Group workouts by muscle group
+    private var groupedWorkouts: [String: [WorkoutEntry]] {
+        Dictionary(grouping: workoutData.entries) { entry in
+            entry.muscleGroup.isEmpty ? "Other" : entry.muscleGroup
+        }
+    }
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -22,20 +29,31 @@ struct WorkoutEvaluationView: View {
                         Text("No workouts logged yet.")
                             .italic()
                     } else {
-                        // Get all unique exercises
-                        let exercises = Array(Set(workoutData.entries.map { $0.exercise }))
-                        
-                        ForEach(exercises, id: \.self) { exercise in
-                            VStack(alignment: .leading, spacing: 5) {
-                                Text("\(exercise) Analysis:")
-                                    .font(.headline)
+                        // Loop through each muscle group (Back, Chest, etc.)
+                        ForEach(groupedWorkouts.keys.sorted(), id: \.self) { muscle in
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text(muscle)
+                                    .font(.title2)
+                                    .bold()
+                                    .padding(.vertical, 5)
                                 
-                                if let latest = latestEntry(for: exercise) {
-                                    Text(evaluate(latest: latest, for: exercise))
-                                        .padding(.top, 2)
+                                // Unique exercises under each muscle group
+                                let exercises = Array(Set(groupedWorkouts[muscle, default: []].map { $0.exercise })).sorted()
+                                
+                                ForEach(exercises, id: \.self) { exercise in
+                                    VStack(alignment: .leading, spacing: 5) {
+                                        Text("\(exercise) Analysis:")
+                                            .font(.headline)
+                                        
+                                        if let latest = latestEntry(for: exercise) {
+                                            Text(evaluate(latest: latest, for: exercise))
+                                                .padding(.top, 2)
+                                        }
+                                    }
+                                    .padding(.bottom, 8)
                                 }
                             }
-                            .padding(.bottom, 10)
+                            .padding(.bottom, 15)
                         }
                     }
                     
@@ -46,6 +64,8 @@ struct WorkoutEvaluationView: View {
             .navigationTitle("Evaluation")
         }
     }
+    
+    // MARK: - Helper Methods
     
     // Get latest entry for a specific exercise
     func latestEntry(for exercise: String) -> WorkoutEntry? {
@@ -75,14 +95,25 @@ struct WorkoutEvaluationView: View {
         } else {
             feedback += "Same reps as last time (\(latest.reps)). Keep pushing!\n"
         }
-        
+                
         if latest.weight > prev.weight {
-            feedback += "Increased weight: \(latest.weight) lbs vs \(prev.weight) lbs."
+            feedback += "Increased weight: \(Int(latest.weight)) lbs vs \(Int(prev.weight)) lbs."
         } else if latest.weight < prev.weight {
-            feedback += "Weight decreased: \(latest.weight) lbs vs \(prev.weight) lbs."
+            feedback += "Weight decreased: \(Int(latest.weight)) lbs vs \(Int(prev.weight)) lbs."
         }
+        
+        // ✅ Frequency check (new)
+            let oneWeekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
+            let recentCount = workoutData.entries.filter {
+                $0.exercise.lowercased() == exercise.lowercased() && $0.date >= oneWeekAgo
+            }.count
+
+            if recentCount > 2 {
+                feedback += "\n⚠️ You’ve done \(exercise) \(recentCount) times this week. Recommending to stick to 2 times a week max."
+            }
         
         return feedback
     }
 }
+
 
