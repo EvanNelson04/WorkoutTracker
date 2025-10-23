@@ -26,6 +26,21 @@ struct RegisterView: View {
             .ignoresSafeArea()
 
             VStack(spacing: 25) {
+                // 🔹 Back Button
+                HStack {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "chevron.left")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                            .padding(8)
+                            .background(Color.white.opacity(0.15))
+                            .clipShape(Circle())
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 10)
+
                 Text("Create Account")
                     .font(.title)
                     .bold()
@@ -88,3 +103,4 @@ struct RegisterView: View {
         dismiss()
     }
 }
+

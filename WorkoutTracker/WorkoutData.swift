@@ -16,6 +16,14 @@ class WorkoutData: ObservableObject {
         load()
     }
     
+    func personalRecord(for exercise: String) -> Double {
+        entries
+            .filter { $0.exercise.lowercased().contains(exercise.lowercased()) }
+            .map { $0.weight }
+            .max() ?? 0.0
+    }
+
+    
     func add(entry: WorkoutEntry) {
         entries.append(entry)
         save()
