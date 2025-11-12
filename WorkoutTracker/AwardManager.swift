@@ -5,13 +5,6 @@
 //  Created by Evan Nelson on 10/20/25.
 //
 
-//
-//  AwardManager.swift
-//  WorkoutTracker
-//
-//  Created by Evan Nelson on 10/20/25.
-//
-
 import Foundation
 import SwiftUI
 

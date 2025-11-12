@@ -13,111 +13,144 @@ struct ProfileView: View {
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 20) {
-                VStack(spacing: 8) {
-                    Text("👋 Welcome, \(auth.username)")
-                        .font(.title2)
-                        .bold()
-                    Text("Your workout summary")
-                        .foregroundColor(.secondary)
-                }
-                .padding(.top, 30)
+            ZStack {
+                // Gradient background
+                AppColors.gradient
+                    .ignoresSafeArea()
                 
-                Divider()
-                
-                VStack(alignment: .leading, spacing: 16) {
-                    let totalWorkouts = workoutData.entries.count
-                    let uniqueExercises = Set(workoutData.entries.map { $0.exercise }).count
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Welcome Section
+                        VStack(spacing: 8) {
+                            Text("👋 Welcome, \(auth.username)")
+                                .font(.title2)
+                                .bold()
+                                .foregroundColor(.white)
+                            Text("Your workout summary")
+                                .foregroundColor(.white.opacity(0.8))
+                        }
+                        .padding(.top, 30)
+                        
+                        // Stats Card
+                        VStack(alignment: .leading, spacing: 16) {
+                            let totalWorkouts = workoutData.entries.count
+                            let uniqueExercises = Set(workoutData.entries.map { $0.exercise }).count
 
-                    HStack {
-                        Text("Total Workouts:")
-                        Spacer()
-                        Text("\(totalWorkouts)")
-                            .bold()
-                    }
+                            HStack {
+                                Text("Total Workouts:")
+                                    .foregroundColor(.white)
+                                Spacer()
+                                Text("\(totalWorkouts)")
+                                    .bold()
+                                    .foregroundColor(.white)
+                            }
 
-                    HStack {
-                        Text("Unique Exercises:")
-                        Spacer()
-                        Text("\(uniqueExercises)")
-                            .bold()
-                    }
+                            HStack {
+                                Text("Unique Exercises:")
+                                    .foregroundColor(.white)
+                                Spacer()
+                                Text("\(uniqueExercises)")
+                                    .bold()
+                                    .foregroundColor(.white)
+                            }
 
-                    Divider().padding(.vertical, 8)
+                            Divider().background(Color.white.opacity(0.7))
+                            
+                            // Personal Records
+                            let squatPR = workoutData.entries
+                                .filter { $0.exercise.lowercased().contains("squat") }
+                                .map { $0.weight }
+                                .max() ?? 0.0
 
-                    // 💪 Personal Records (PRs)
-                    let squatPR = workoutData.entries
-                        .filter { $0.exercise.lowercased().contains("squat") }
-                        .map { $0.weight }
-                        .max() ?? 0.0
+                            let benchPR = workoutData.entries
+                                .filter { $0.exercise.lowercased().contains("bench") }
+                                .map { $0.weight }
+                                .max() ?? 0.0
 
-                    let benchPR = workoutData.entries
-                        .filter { $0.exercise.lowercased().contains("bench") }
-                        .map { $0.weight }
-                        .max() ?? 0.0
+                            let deadliftPR = workoutData.entries
+                                .filter { $0.exercise.lowercased().contains("deadlift") }
+                                .map { $0.weight }
+                                .max() ?? 0.0
 
-                    let deadliftPR = workoutData.entries
-                        .filter { $0.exercise.lowercased().contains("deadlift") }
-                        .map { $0.weight }
-                        .max() ?? 0.0
+                            Text("Personal Records")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding(.top, 4)
 
-                    Text("Personal Records")
-                        .font(.headline)
-                        .padding(.top, 4)
+                            HStack {
+                                Text("🏋️‍♂️ Squat:")
+                                    .foregroundColor(.white.opacity(0.9))
+                                Spacer()
+                                Text("\(squatPR == 0 ? "—" : "\(Int(squatPR)) lbs")")
+                                    .bold()
+                                    .foregroundColor(.white)
+                            }
 
-                    HStack {
-                        Text("🏋️‍♂️ Squat:")
-                        Spacer()
-                        Text("\(squatPR == 0 ? "—" : "\(Int(squatPR)) lbs")")
-                            .bold()
-                    }
+                            HStack {
+                                Text("💪 Bench:")
+                                    .foregroundColor(.white.opacity(0.9))
+                                Spacer()
+                                Text("\(benchPR == 0 ? "—" : "\(Int(benchPR)) lbs")")
+                                    .bold()
+                                    .foregroundColor(.white)
+                            }
 
-                    HStack {
-                        Text("💪 Bench:")
-                        Spacer()
-                        Text("\(benchPR == 0 ? "—" : "\(Int(benchPR)) lbs")")
-                            .bold()
-                    }
+                            HStack {
+                                Text("⚡️ Deadlift:")
+                                    .foregroundColor(.white.opacity(0.9))
+                                Spacer()
+                                Text("\(deadliftPR == 0 ? "—" : "\(Int(deadliftPR)) lbs")")
+                                    .bold()
+                                    .foregroundColor(.white)
+                            }
 
-                    HStack {
-                        Text("⚡️ Deadlift:")
-                        Spacer()
-                        Text("\(deadliftPR == 0 ? "—" : "\(Int(deadliftPR)) lbs")")
-                            .bold()
-                    }
-                    let totalPR = deadliftPR + squatPR + benchPR
+                            let totalPR = deadliftPR + squatPR + benchPR
+                            HStack {
+                                Spacer()
+                                Text("Total PR: \(Int(totalPR)) lbs")
+                                    .bold()
+                                    .foregroundColor(.white)
+                            }
 
-                    HStack {
-                        Spacer()
-                        Text("\(Int(totalPR)) lbs")
-                    }
-                }
-
-                
-                
-                
-                .padding(.horizontal)
-                .font(.headline)
-                
-                Spacer()
-                
-                Button(action: {
-                    auth.logout()
-                }) {
-                    Text("Log Out")
-                        .frame(maxWidth: .infinity)
+                        }
                         .padding()
-                        .background(Color.red.opacity(0.9))
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
+                        .background(
+                            AppColors.gradient
+                                .mask(RoundedRectangle(cornerRadius: 16))
+                        )
+                        .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 2)
                         .padding(.horizontal)
+                        
+                        // Logout Button
+                        Button(action: {
+                            auth.logout()
+                        }) {
+                            Text("Log Out")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(
+                                    LinearGradient(
+                                        colors: [Color.green, Color.blue],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
+                                .padding(.horizontal)
+                        }
+                        .padding(.bottom, 40)
+                    }
+                    .padding(.vertical)
                 }
-                .padding(.bottom, 40)
             }
             .navigationTitle("Profile")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
+
 
 
 

@@ -1,5 +1,5 @@
 //
-//  WorkoutEntry.swift
+//  WorkoutModels.swift
 //  WorkoutTracker
 //
 //  Created by Evan Nelson on 9/23/25.

@@ -13,6 +13,17 @@ struct WorkoutTrackerApp: App {
     @StateObject var auth = UserAuth()
     @StateObject var awardManager = AwardManager()
     
+    init() {
+        // Make all navigation elements (titles, back arrows, icons) white
+        UINavigationBar.appearance().largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+        UINavigationBar.appearance().titleTextAttributes = [.foregroundColor: UIColor.white]
+        UINavigationBar.appearance().tintColor = .white
+        
+        // Make the tab bar always have a visible background
+        UITabBar.appearance().backgroundColor = UIColor.systemGray6.withAlphaComponent(0.95)
+        UITabBar.appearance().barTintColor = UIColor.systemGray6
+    }
+    
     var body: some Scene {
         WindowGroup {
             if auth.isLoggedIn {
@@ -27,7 +38,9 @@ struct WorkoutTrackerApp: App {
                                 }
                             }
                     }
-                    .tabItem { Label("History", systemImage: "list.bullet") }
+                    .tabItem {
+                        Label("History", systemImage: "list.bullet")
+                    }
                     
                     // MARK: - Charts Tab
                     NavigationStack {
@@ -38,7 +51,9 @@ struct WorkoutTrackerApp: App {
                                 }
                             }
                     }
-                    .tabItem { Label("Charts", systemImage: "chart.line.uptrend.xyaxis") }
+                    .tabItem {
+                        Label("Charts", systemImage: "chart.line.uptrend.xyaxis")
+                    }
                     
                     // MARK: - Evaluation Tab
                     NavigationStack {
@@ -49,7 +64,9 @@ struct WorkoutTrackerApp: App {
                                 }
                             }
                     }
-                    .tabItem { Label("Evaluation", systemImage: "doc.text.magnifyingglass") }
+                    .tabItem {
+                        Label("Evaluation", systemImage: "doc.text.magnifyingglass")
+                    }
                     
                     // MARK: - Awards Tab
                     NavigationStack {
@@ -64,17 +81,21 @@ struct WorkoutTrackerApp: App {
                                 }
                             }
                     }
-                    .tabItem { Label("Awards", systemImage: "star.fill") }
+                    .tabItem {
+                        Label("Awards", systemImage: "star.fill")
+                    }
                     
                     // MARK: - Add Tab
                     AddWorkoutView()
-                        .tabItem { Label("Add", systemImage: "plus.circle") }
-                    
+                        .tabItem {
+                            Label("Add", systemImage: "plus.circle")
+                        }
                 }
-                // 🌍 Make environment objects available across all tabs
+                // 🌍 Share data and auth across tabs
                 .environmentObject(workoutData)
                 .environmentObject(auth)
-                .environmentObject(awardManager) // 👈 Add this line
+                .environmentObject(awardManager)
+                .tint(.white) // Make selected tab icon white for consistency
             } else {
                 LoginView()
                     .environmentObject(auth)
@@ -88,9 +109,10 @@ struct WorkoutTrackerApp: App {
         NavigationLink(destination: ProfileView()) {
             Image(systemName: "person.crop.circle")
                 .font(.title2)
+                .foregroundColor(.white) // ✅ White icon on gradient
         }
     }
-} 
+}
 
 
 

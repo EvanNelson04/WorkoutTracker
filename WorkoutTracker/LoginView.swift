@@ -16,16 +16,12 @@ struct LoginView: View {
 
     var body: some View {
         ZStack {
-            // Background gradient
-            LinearGradient(
-                gradient: Gradient(colors: [Color.blue.opacity(0.95), Color.indigo]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            // Unified app gradient background
+            AppColors.gradient
+                .ignoresSafeArea()
 
             VStack(spacing: 25) {
-                // MARK: - Logo at the top
+                // MARK: - Logo
                 VStack(spacing: 8) {
                     Image("AppLogo")
                         .resizable()
@@ -39,7 +35,7 @@ struct LoginView: View {
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                 }
-                .padding(.top, 60) // pushes logo down
+                .padding(.top, 60)
 
                 Spacer(minLength: 20)
 
@@ -47,15 +43,15 @@ struct LoginView: View {
                 VStack(spacing: 16) {
                     TextField("Username", text: $username)
                         .padding()
-                        .background(Color.white.opacity(0.15))
-                        .cornerRadius(10)
+                        .background(Color.white.opacity(0.2))
+                        .cornerRadius(12)
                         .foregroundColor(.white)
                         .autocapitalization(.none)
 
                     SecureField("Password", text: $password)
                         .padding()
-                        .background(Color.white.opacity(0.15))
-                        .cornerRadius(10)
+                        .background(Color.white.opacity(0.2))
+                        .cornerRadius(12)
                         .foregroundColor(.white)
                 }
                 .padding(.horizontal, 40)
@@ -74,8 +70,14 @@ struct LoginView: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.white)
-                        .foregroundColor(.blue)
+                        .background(
+                            LinearGradient(
+                                colors: [Color.green, Color.blue],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .foregroundColor(.white)
                         .cornerRadius(12)
                         .padding(.horizontal, 40)
                 }
@@ -103,5 +105,6 @@ struct LoginView: View {
         }
     }
 }
+
 
 
