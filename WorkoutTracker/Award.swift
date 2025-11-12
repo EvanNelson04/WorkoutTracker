@@ -14,8 +14,8 @@ struct Award: Identifiable {
     let icon: String
     var achieved: Bool
     var progress: Double = 0.0
-    var progressDescription: String? = nil // 👈 Add this
-    var dateEarned: Date? = nil   // 👈 Add this line
+    var progressDescription: String? = nil
+    var dateEarned: Date? = nil
 
 }
 
