@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Charts
 
 @main
 struct WorkoutTrackerApp: App {
@@ -42,9 +43,9 @@ struct WorkoutTrackerApp: App {
                         Label("History", systemImage: "list.bullet")
                     }
                     
-                    // MARK: - Charts Tab
+                    // MARK: - Progress Tab (new combined chart + evaluation)
                     NavigationStack {
-                        WorkoutChartView()
+                        WorkoutProgressView()
                             .toolbar {
                                 ToolbarItem(placement: .navigationBarTrailing) {
                                     profileButton()
@@ -52,27 +53,13 @@ struct WorkoutTrackerApp: App {
                             }
                     }
                     .tabItem {
-                        Label("Charts", systemImage: "chart.line.uptrend.xyaxis")
-                    }
-                    
-                    // MARK: - Evaluation Tab
-                    NavigationStack {
-                        WorkoutEvaluationView()
-                            .toolbar {
-                                ToolbarItem(placement: .navigationBarTrailing) {
-                                    profileButton()
-                                }
-                            }
-                    }
-                    .tabItem {
-                        Label("Evaluation", systemImage: "doc.text.magnifyingglass")
+                        Label("Progress", systemImage: "chart.line.uptrend.xyaxis")
                     }
                     
                     // MARK: - Awards Tab
                     NavigationStack {
                         AwardsView()
                             .onAppear {
-                                // Evaluate awards automatically when viewing the tab
                                 awardManager.evaluateAwards(for: workoutData.entries)
                             }
                             .toolbar {
@@ -85,7 +72,15 @@ struct WorkoutTrackerApp: App {
                         Label("Awards", systemImage: "star.fill")
                     }
                     
-                    // MARK: - Add Tab
+                    // Suggestions Tab
+                    NavigationStack {
+                        SuggestionsView()
+                    }
+                    .tabItem {
+                        Label("Suggestions", systemImage: "figure.strengthtraining.traditional")
+                    }
+                    
+                    // Add Tab
                     AddWorkoutView()
                         .tabItem {
                             Label("Add", systemImage: "plus.circle")

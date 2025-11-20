@@ -1,3 +1,11 @@
+//
+//  Exercise.swift
+//  WorkoutTracker
+//
+//  Created by Evan Nelson on 11/20/25.
+//
+
+
 import Foundation
 
 struct Exercise: Identifiable {
