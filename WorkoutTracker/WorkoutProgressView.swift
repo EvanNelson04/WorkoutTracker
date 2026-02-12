@@ -3,7 +3,7 @@
 //  WorkoutTracker
 //
 //  Created by Evan Nelson on 9/23/25.
-//  Updated for unified progress tab with evaluation + graph
+//  Updated for dynamic evaluation and trend analysis
 //
 
 import SwiftUI
@@ -11,7 +11,6 @@ import Charts
 
 struct WorkoutProgressView: View {
     @EnvironmentObject var workoutData: WorkoutData
-    
     @State private var selectedExercise: String? = nil
     
     var body: some View {
@@ -56,7 +55,6 @@ struct WorkoutProgressView: View {
                             } else {
                                 Chart {
                                     ForEach(Array(exerciseEntries.enumerated()), id: \.offset) { index, entry in
-                                        // Vertical dashed stem
                                         RuleMark(
                                             x: .value("Index", index),
                                             yStart: .value("Start", 0),
@@ -65,7 +63,6 @@ struct WorkoutProgressView: View {
                                         .lineStyle(StrokeStyle(lineWidth: 1, dash: [4]))
                                         .foregroundStyle(.white.opacity(0.6))
                                         
-                                        // Line connecting points
                                         LineMark(
                                             x: .value("Index", index),
                                             y: .value("Weight", entry.weight)
@@ -74,7 +71,6 @@ struct WorkoutProgressView: View {
                                         .foregroundStyle(.white)
                                         .lineStyle(StrokeStyle(lineWidth: 2))
                                         
-                                        // Data point with annotation
                                         PointMark(
                                             x: .value("Index", index),
                                             y: .value("Weight", entry.weight)
@@ -137,9 +133,15 @@ struct WorkoutProgressView: View {
                                     .font(.title2.bold())
                                     .foregroundColor(.white)
                                 
-                                Text(generateEvaluation(for: exercise))
-                                    .foregroundColor(.white.opacity(0.9))
-                                    .font(.body)
+                                if let latest = latestEntry(for: exercise) {
+                                    Text(evaluate(latest: latest, history: history(for: exercise)))
+                                        .foregroundColor(.white.opacity(0.9))
+                                        .font(.body)
+                                } else {
+                                    Text("Keep logging workouts to see trends and receive detailed evaluation.")
+                                        .foregroundColor(.white.opacity(0.9))
+                                        .font(.body)
+                                }
                             }
                             .padding()
                             .background(Color.black.opacity(0.3))
@@ -179,131 +181,157 @@ struct WorkoutProgressView: View {
             .sorted { $0.date < $1.date }
     }
     
-    // MARK: - Short date format
+    func history(for exercise: String) -> [WorkoutEntry] {
+        workoutData.entries
+            .filter { $0.exercise.lowercased() == exercise.lowercased() }
+            .sorted { $0.date > $1.date }
+    }
+    
+    func latestEntry(for exercise: String) -> WorkoutEntry? {
+        history(for: exercise).first
+    }
+    
     func shortMonthDay(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d"
         return formatter.string(from: date)
     }
     
-    // MARK: - Detailed Evaluation Logic
-    func generateEvaluation(for exercise: String) -> String {
-        let entries = workoutData.entries
-            .filter { $0.exercise.lowercased() == exercise.lowercased() }
-            .sorted { $0.date < $1.date }
-        
-        guard let latest = entries.last else {
-            return "Keep logging workouts to see trends and receive detailed evaluation."
+    // MARK: - Advanced Dynamic Evaluation
+    // MARK: - Advanced Dynamic Evaluation with Predictions & Fatigue
+    func evaluate(latest: WorkoutEntry, history: [WorkoutEntry]) -> String {
+        guard history.count > 1 else {
+            return "🚀 First \(latest.exercise.capitalized) session logged — future sessions will generate detailed insights!"
         }
-        
-        let previousEntries = entries.dropLast()
-        
-        var feedback = "🏋️ \(exercise.capitalized) Progress Report:\n"
-        
-        if let prev = previousEntries.last {
-            // Weight comparison
-            if latest.weight > prev.weight {
-                feedback += "• You lifted \(Int(latest.weight - prev.weight)) lbs more than last session.\n"
-            } else if latest.weight < prev.weight {
-                feedback += "• Slight drop in weight (\(Int(latest.weight)) vs \(Int(prev.weight))).\n"
-            } else {
-                feedback += "• Weight stayed the same (\(Int(latest.weight)) lbs).\n"
-            }
-            
-            // Reps comparison
-            if latest.reps > prev.reps {
-                feedback += "• Reps increased (\(latest.reps) vs \(prev.reps)).\n"
-            } else if latest.reps < prev.reps {
-                feedback += "• Fewer reps (\(latest.reps) vs \(prev.reps)).\n"
-            } else {
-                feedback += "• Reps stayed the same (\(latest.reps)).\n"
-            }
+
+        let prev = history[1]
+        let recent = Array(history.prefix(5))
+        let older = Array(history.dropFirst().prefix(5))
+
+        let latestVolume = latest.weight * Double(latest.reps)
+        let prevVolume = prev.weight * Double(prev.reps)
+
+        let recentAvgVolume = recent.map { $0.weight * Double($0.reps) }.reduce(0, +) / Double(recent.count)
+        let olderAvgVolume = max(older.map { $0.weight * Double($0.reps) }.reduce(0, +) / Double(max(older.count, 1)), 1)
+        let momentum = (recentAvgVolume - olderAvgVolume) / olderAvgVolume
+
+        // --- Dynamic Opening Line ---
+        let opening: String
+        if latest.weight > prev.weight && latest.reps >= prev.reps {
+            opening = "🔥 Crushing it on \(latest.exercise)! Strength and endurance are up!"
+        } else if latest.weight > prev.weight {
+            opening = "💪 \(latest.exercise.capitalized) strength increased — nice work!"
+        } else if latest.reps > prev.reps {
+            opening = "🔁 \(latest.exercise.capitalized) endurance improved with more reps!"
+        } else if momentum > 0.05 {
+            opening = "📈 Steady gains on \(latest.exercise)! Keep building momentum."
+        } else if momentum < -0.10 {
+            opening = "⚠️ \(latest.exercise.capitalized) performance dipped slightly — check recovery."
         } else {
-            feedback += "🔥 First session logged — strong start!\n"
+            opening = "🧠 \(latest.exercise.capitalized) performance steady — perfect for technique focus."
         }
-        
-        // Average of last 3 previous sessions
-        let lastThree = Array(previousEntries.suffix(3))
-        if !lastThree.isEmpty {
-            let avgWeight = lastThree.map { $0.weight }.reduce(0, +) / Double(lastThree.count)
-            let avgReps = Double(lastThree.map { $0.reps }.reduce(0, +)) / Double(lastThree.count)
-            if latest.weight > avgWeight || Double(latest.reps) > avgReps {
-                feedback += "📈 Trending above recent 3-session average — progress looks great!\n"
-            } else {
-                feedback += "⏳ Close to average performance. Stay consistent.\n"
-            }
+
+        var feedback = "\(opening)\n\n"
+
+        // --- Strength & Endurance ---
+        if latest.weight > prev.weight && latest.reps >= prev.reps {
+            feedback += "• Strength AND endurance up — textbook progressive overload.\n"
+        } else if latest.weight > prev.weight {
+            feedback += "• Weight increased. Neural strength likely improving.\n"
+        } else if latest.reps > prev.reps {
+            feedback += "• More reps than last session — endurance is improving.\n"
+        } else {
+            feedback += "• Output held steady — maintain technique and recovery.\n"
         }
-        
-        // MARK: - Trend Analysis (recent progression/regression)
-        if entries.count >= 4 {
-            let recent = entries.suffix(5)  // Last 5 workouts for trend
-            
-            // Extract weight, reps, and workload series
-            let weights = recent.map { $0.weight }
-            let repsList = recent.map { Double($0.reps) }
-            let workloads = recent.map { $0.weight * Double($0.reps) }
-            
-            // Helper to compute slope of linear regression
+
+        // --- Volume ---
+        if latestVolume > prevVolume {
+            feedback += "• Training volume increased (+\(Int(latestVolume - prevVolume))) — strong workload tolerance.\n"
+        } else if latestVolume < prevVolume {
+            feedback += "• Volume slightly decreased — could signal fatigue or planned deload.\n"
+        }
+
+        // --- Momentum ---
+        if momentum > 0.15 {
+            feedback += "• 🚀 Momentum: HIGH — performance accelerating rapidly.\n"
+        } else if momentum > 0.05 {
+            feedback += "• 📈 Momentum: POSITIVE — steady sustainable progress.\n"
+        } else if momentum < -0.10 {
+            feedback += "• ⚠️ Momentum: DECLINING — recovery may be needed.\n"
+        } else {
+            feedback += "• ⏸ Momentum: STABLE — consistent output.\n"
+        }
+
+        // --- Personal Record ---
+        let bestVolume = history.map { $0.weight * Double($0.reps) }.max() ?? latestVolume
+        if latestVolume >= bestVolume {
+            feedback += "• 🏆 New personal volume record achieved!\n"
+        }
+
+        // --- Weekly Consistency ---
+        let oneWeekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
+        let weeklyEntries = history.filter { $0.date >= oneWeekAgo }
+        let weeklyVolume = weeklyEntries.map { $0.weight * Double($0.reps) }.reduce(0, +)
+        let weeklyCount = weeklyEntries.count
+
+        if weeklyCount >= 4 {
+            feedback += "• 🛌 High frequency (\(weeklyCount)x this week) — consider prioritizing recovery.\n"
+        } else if weeklyCount >= 2 {
+            feedback += "• ✅ Weekly frequency optimal for growth and recovery.\n"
+        } else {
+            feedback += "• 💡 Add another session this week to boost adaptation.\n"
+        }
+
+        // --- 1️⃣ Predictive Next Session ---
+        if recent.count >= 2 {
+            let x = (0..<recent.count).map { Double($0) }
+            let yWeight = recent.map { $0.weight }
+            let yReps = recent.map { Double($0.reps) }
+
             func slope(_ values: [Double]) -> Double {
                 let n = Double(values.count)
-                let x = (0..<values.count).map { Double($0) }
-                
                 let sumX = x.reduce(0, +)
                 let sumY = values.reduce(0, +)
                 let sumXY = zip(x, values).map(*).reduce(0, +)
                 let sumX2 = x.map { $0 * $0 }.reduce(0, +)
-                
                 return (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX)
             }
-            
-            let weightSlope = slope(weights)
-            let repsSlope = slope(repsList)
-            let workloadSlope = slope(workloads)
-            
-            feedback += "\n📈 Trend Analysis (Recent Workouts):\n"
-            
-            // Weight trend
-            if weightSlope > 0.5 {
-                feedback += "• Weight is trending up — strong recent progress.\n"
-            } else if weightSlope < -0.5 {
-                feedback += "• Weight is trending downward — possible fatigue or deload.\n"
-            } else {
-                feedback += "• Weight is steady with no major change.\n"
-            }
-            
-            // Reps trend
-            if repsSlope > 0.5 {
-                feedback += "• Reps are trending up — endurance increasing.\n"
-            } else if repsSlope < -0.5 {
-                feedback += "• Reps are trending downward — monitor recovery.\n"
-            } else {
-                feedback += "• Reps are stable.\n"
-            }
-            
-            // Workload trend (the best indicator)
-            if workloadSlope > 5 {
-                feedback += "• Overall workload is increasing — clear strength progression.\n"
-            } else if workloadSlope < -5 {
-                feedback += "• Workload is declining — could be intentional deload or overtraining.\n"
-            } else {
-                feedback += "• Workload is plateaued.\n"
-            }
+
+            let weightSlope = slope(yWeight)
+            let repsSlope = slope(yReps)
+
+            // Predicted next session
+            var predictedWeight = latest.weight + weightSlope
+            var predictedReps = Double(latest.reps) + repsSlope
+
+            // Round to realistic increments
+            predictedWeight = round(predictedWeight / 5) * 5 // nearest 5 lbs
+            predictedReps = round(predictedReps)               // nearest whole rep
+
+            // Ensure minimums
+            predictedWeight = max(predictedWeight, 5)  // minimum 5 lbs
+            predictedReps = max(predictedReps, 1)      // minimum 1 rep
+
+            feedback += String(format: "• 🎯 Predicted next session: %.0f lbs × %.0f reps\n", predictedWeight, predictedReps)
         }
-    
-        
-        // Weekly consistency
-        let oneWeekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
-        let recentCount = entries.filter { $0.date >= oneWeekAgo }.count
-        if recentCount > 2 {
-            feedback += "⚠️ Logged \(exercise) \(recentCount) times this week — optimize recovery.\n"
-        } else if recentCount == 2 {
-            feedback += "✅ Great weekly consistency — two sessions ideal.\n"
-        } else {
-            feedback += "💡 Try adding one more \(exercise) session this week.\n"
+
+
+        // --- 2️⃣ Fatigue & Recovery Index ---
+        // Simple formula: weekly volume normalized by recent momentum
+        let fatigueScore = min(max(Int(weeklyVolume / (recentAvgVolume) * 10), 0), 100)
+        let fatigueEmoji: String
+        switch fatigueScore {
+        case 0..<40: fatigueEmoji = "✅"
+        case 40..<70: fatigueEmoji = "⚠️"
+        default: fatigueEmoji = "🛌"
         }
-        
-        feedback += "\nKeep tracking — your progress graph tells the full story 📊."
-        
+
+        feedback += "• \(fatigueEmoji) Fatigue Index: \(fatigueScore)/100 — adjust intensity/recovery accordingly.\n"
+
+        feedback += "\n📌 Data-driven training beats guesswork — stay consistent!"
         return feedback.trimmingCharacters(in: .whitespacesAndNewlines)
     }
+
 }
+
+

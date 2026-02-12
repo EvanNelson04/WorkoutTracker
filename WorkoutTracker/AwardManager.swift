@@ -12,39 +12,76 @@ import SwiftUI
 class AwardManager: ObservableObject {
     @Published var awards: [Award] = [
         Award(title: "10-Day Streak", description: "Workout 10 days in a row.", icon: "🔥", achieved: false),
-        Award(title: "Bench +50 lbs", description: "Increase your bench press by 50 lbs.", icon: "💪", achieved: false),
-        Award(title: "100 Workouts", description: "Log 100 total workouts.", icon: "🏆", achieved: false),
+        Award(title: "Workouts Logged", description: "Log 100 workouts.", icon: "🏆", achieved: false, tier: 1, maxTier: 4, nextTierGoal: 100),
+        Award(title: "Bench Press PR", description: "Increase your bench press by 50 lbs.", icon: "💪", achieved: false, tier: 1, maxTier: 3, nextTierGoal: 50),
         Award(title: "All-Rounder", description: "Log 5 different exercises.", icon: "🎯", achieved: false),
-        Award(title: "Gym Rat", description: "Log workouts 20 days in a single month.", icon: "🐀", achieved: false),
-        Award(title: "1000 Lb Club", description: "Combined total of 1000lbs from Deadlift, Squat and Bench Press", icon:"🦍", achieved: false),
+        Award(title: "Gym Rat", description: "Workout 20 days in a month.", icon: "🐀", achieved: false),
+        Award(title: "1000 Lb Club", description: "Combine 1000 lbs from Squat, Bench, Deadlift.", icon:"🦍", achieved: false, tier: 1, maxTier: 3, nextTierGoal: 1000),
     ]
     
     func evaluateAwards(for entries: [WorkoutEntry]) {
         guard !entries.isEmpty else { return }
         let sorted = entries.sorted(by: { $0.date < $1.date })
+        let calendar = Calendar.current
         
         for i in awards.indices {
-            let award = awards[i]
+            var award = awards[i]  // mutable copy
             var progress: Double = 0
             var achieved = false
             
             switch award.title {
+                
             case "10-Day Streak":
                 let streak = longestWorkoutStreak(from: sorted)
                 progress = min(Double(streak) / 10.0, 1.0)
                 achieved = streak >= 10
                 
-            case "Bench +50 lbs":
-                let benchEntries = sorted.filter { $0.exercise.lowercased().contains("bench") }
-                if let first = benchEntries.first, let last = benchEntries.last {
-                    let diff = max(0, last.weight - first.weight)
-                    progress = min(Double(diff) / 50.0, 1.0)
-                    achieved = diff >= 50
+            case "Workouts Logged":
+                let totalWorkouts = entries.count
+                if let goal = award.nextTierGoal {
+                    progress = min(Double(totalWorkouts) / Double(goal), 1.0)
+                    achieved = Double(totalWorkouts) >= Double(goal)
+                    
+                    if achieved && award.tier < award.maxTier {
+                        award.tier += 1
+                        award.nextTierGoal = award.tier * goal
+                        award.description = "Log \(award.nextTierGoal!) workouts."
+                        award.achieved = false
+                    }
                 }
                 
-            case "100 Workouts":
-                progress = min(Double(entries.count) / 100.0, 1.0)
-                achieved = entries.count >= 100
+            case "Bench Press PR":
+                let benchEntries = sorted.filter { $0.exercise.lowercased().contains("bench") }
+                if let first = benchEntries.first, let last = benchEntries.last, let goal = award.nextTierGoal {
+                    let diff = max(0, last.weight - first.weight)
+                    progress = min(Double(diff) / Double(goal), 1.0)
+                    achieved = Double(diff) >= Double(goal)
+                    
+                    if achieved && award.tier < award.maxTier {
+                        award.tier += 1
+                        award.nextTierGoal = award.tier * goal
+                        award.description = "Increase your bench press by \(award.nextTierGoal!) lbs."
+                        award.achieved = false
+                    }
+                }
+                
+            case "1000 Lb Club":
+                let squatPR = entries.filter { $0.exercise.lowercased().contains("squat") }.map { $0.weight }.max() ?? 0
+                let benchPR = entries.filter { $0.exercise.lowercased().contains("bench") }.map { $0.weight }.max() ?? 0
+                let deadliftPR = entries.filter { $0.exercise.lowercased().contains("deadlift") }.map { $0.weight }.max() ?? 0
+                let total = squatPR + benchPR + deadliftPR
+                if let goal = award.nextTierGoal {
+                    progress = min(Double(total) / Double(goal), 1.0)
+                    achieved = Double(total) >= Double(goal)
+                    
+                    if achieved && award.tier < award.maxTier {
+                        award.tier += 1
+                        award.nextTierGoal = award.tier * goal
+                        award.description = "Combine \(award.nextTierGoal!) lbs from Squat, Bench, Deadlift."
+                        award.achieved = false
+                    }
+                    award.progressDescription = "\(Int(total)) lbs / \(goal) lbs"
+                }
                 
             case "All-Rounder":
                 let uniqueExercises = Set(entries.map { $0.exercise.lowercased() })
@@ -52,56 +89,32 @@ class AwardManager: ObservableObject {
                 achieved = uniqueExercises.count >= 5
                 
             case "Gym Rat":
-                let calendar = Calendar.current
-
                 if let latestWorkout = entries.sorted(by: { $0.date > $1.date }).first {
                     let currentMonth = calendar.component(.month, from: latestWorkout.date)
                     let currentYear = calendar.component(.year, from: latestWorkout.date)
-
-                    // Get all unique workout days in this month
+                    
                     let monthlyDays = Set(entries.compactMap { entry -> Date? in
                         let components = calendar.dateComponents([.year, .month, .day], from: entry.date)
                         guard components.year == currentYear, components.month == currentMonth else { return nil }
                         return calendar.date(from: components)
                     })
-
+                    
                     let uniqueDayCount = monthlyDays.count
                     progress = min(Double(uniqueDayCount) / 20.0, 1.0)
                     achieved = uniqueDayCount >= 20
                 }
                 
-            case "1000 Lb Club":
-                // Calculate best Squat, Bench, and Deadlift PRs
-                let squatPR = entries
-                    .filter { $0.exercise.lowercased().contains("squat") }
-                    .map { $0.weight }
-                    .max() ?? 0.0
-
-                let benchPR = entries
-                    .filter { $0.exercise.lowercased().contains("bench") }
-                    .map { $0.weight }
-                    .max() ?? 0.0
-
-                let deadliftPR = entries
-                    .filter { $0.exercise.lowercased().contains("deadlift") }
-                    .map { $0.weight }
-                    .max() ?? 0.0
-
-                let total = squatPR + benchPR + deadliftPR
-                    progress = min(total / 1000.0, 1.0)
-                    achieved = total >= 1000
-                    awards[i].progressDescription = "\(Int(total)) lbs / 1000 lbs"
-
-                
             default:
                 break
             }
             
-            awards[i].progress = progress
-            if achieved && !awards[i].achieved {
-                awards[i].achieved = true
-                awards[i].dateEarned = Date()
+            // Update award in the published array
+            award.progress = progress
+            if achieved && !award.achieved {
+                award.achieved = true
+                award.dateEarned = Date()
             }
+            awards[i] = award  // ✅ important: write back the mutated award
         }
     }
     
@@ -125,4 +138,6 @@ class AwardManager: ObservableObject {
         return longest
     }
 }
+
+
 

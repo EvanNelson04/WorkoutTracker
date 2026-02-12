@@ -30,10 +30,10 @@ struct WorkoutListView: View {
                     .ignoresSafeArea()
                 
                 List {
-                    ForEach(workoutData.entries) { entry in
+                    ForEach(workoutData.entries.sorted(by: { $0.date > $1.date })) { entry in
                         WorkoutCard(entry: entry)
-                            .listRowBackground(Color.clear) // make row background transparent
-                            .listRowSeparator(.hidden)      // hide default separator
+                            .listRowBackground(Color.clear) // transparent background
+                            .listRowSeparator(.hidden)      // hide separator
                     }
                     .onDelete(perform: workoutData.delete)
                 }

@@ -11,6 +11,7 @@ struct AwardsView: View {
     @EnvironmentObject var awardManager: AwardManager
     @EnvironmentObject var workoutData: WorkoutData
     @State private var selectedAward: Award? = nil
+    @State private var showTrophyCase: Bool = false
     
     var body: some View {
         NavigationView {
@@ -21,6 +22,27 @@ struct AwardsView: View {
                 
                 ScrollView {
                     LazyVStack(spacing: 16) {
+                        
+                        // Trophy Case Button at the top
+                        Button(action: {
+                            showTrophyCase.toggle()
+                        }) {
+                            HStack {
+                                Image(systemName: "rosette")
+                                    .font(.title2)
+                                Text("View Trophy Case")
+                                    .bold()
+                                    .font(.headline)
+                            }
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.white.opacity(0.1))
+                            .cornerRadius(12)
+                        }
+                        .padding(.bottom, 8)
+                        
+                        // Awards List
                         ForEach(awardManager.awards) { award in
                             Button {
                                 selectedAward = award
@@ -69,10 +91,14 @@ struct AwardsView: View {
             .sheet(item: $selectedAward) { award in
                 AwardDetailView(award: award)
             }
+            .sheet(isPresented: $showTrophyCase) {
+                TrophyCaseView(awardManager: awardManager)
+            }
             .onAppear {
                 awardManager.evaluateAwards(for: workoutData.entries)
             }
         }
     }
 }
+
 
