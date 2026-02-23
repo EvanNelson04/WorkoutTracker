@@ -9,6 +9,7 @@ import SwiftUI
 
 struct AddWorkoutView: View {
     @EnvironmentObject var workoutData: WorkoutData
+    @EnvironmentObject var awardManager: AwardManager
     @Environment(\.dismiss) var dismiss
     
     @State private var muscleGroup = ""
@@ -137,7 +138,16 @@ struct AddWorkoutView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .alert("Workout Added!", isPresented: $showConfirmation) {
-                Button("OK") { dismiss() }
+                Button("OK") {
+                    awardManager.evaluateAwards(for: workoutData.entries)
+                    dismiss()
+                }
+            }
+            // Award popup sheet — fires after OK is tapped if an award was unlocked
+            .sheet(item: $awardManager.activePopup) { popup in
+                AwardPopupView(popup: popup) {
+                    awardManager.dismissCurrentPopup()
+                }
             }
         }
     }
@@ -154,6 +164,7 @@ struct AddWorkoutView: View {
             reps: Int(reps) ?? 0,
             heartRate: Double(heartRate)
         )
+
         workoutData.add(entry: entry)
         showConfirmation = true
     }

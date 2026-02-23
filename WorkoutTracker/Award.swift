@@ -8,22 +8,22 @@
 import Foundation
 import SwiftUI
 
-struct Award: Identifiable {
+struct Award: Identifiable, Codable, Equatable {
     let id = UUID()
     let title: String
     var description: String
     let icon: String
     var achieved: Bool = false
     var progress: Double = 0
-    var progressDescription: String? = nil // <-- make optional
+    var progressDescription: String? = nil
     var dateEarned: Date? = nil
 
-    
     // Evolution / tiers
     var tier: Int = 1
     var maxTier: Int = 1
-    var nextTierGoal: Int? = nil // for evolving awards
-
+    var nextTierGoal: Int? = nil
+    var lastAwardedTier: Int = 0
+    var firstRecordedWeight: Double? = nil
 }
 
 

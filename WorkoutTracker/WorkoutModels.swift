@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct WorkoutEntry: Identifiable, Codable {
+struct WorkoutEntry: Identifiable, Codable, Equatable {
     var id = UUID()
     var date: Date
     var muscleGroup: String        // 🆕 Add this line

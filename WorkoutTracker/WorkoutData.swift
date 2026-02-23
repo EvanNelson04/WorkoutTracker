@@ -6,51 +6,41 @@
 //
 
 import Foundation
+import SwiftUI
 
+@MainActor
 class WorkoutData: ObservableObject {
-    @Published var entries: [WorkoutEntry] = []
-    
-    private let fileName = "workouts.json"
-    
-    init() {
-        load()
-    }
-    
-    func personalRecord(for exercise: String) -> Double {
-        entries
-            .filter { $0.exercise.lowercased().contains(exercise.lowercased()) }
-            .map { $0.weight }
-            .max() ?? 0.0
-    }
-
-    
-    func add(entry: WorkoutEntry) {
-        entries.append(entry)
-        save()
-    }
-    
-    // New delete method
-    func delete(at offsets: IndexSet) {
-        entries.remove(atOffsets: offsets)
-        save()
-    }
-    
-    private func save() {
-        let url = getDocumentsDirectory().appendingPathComponent(fileName)
-        if let data = try? JSONEncoder().encode(entries) {
-            try? data.write(to: url)
+    @Published var entries: [WorkoutEntry] = [] {
+        didSet {
+            saveEntries()
         }
     }
     
-    private func getDocumentsDirectory() -> URL {
-        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    init() {
+        loadEntries()
     }
     
-    private func load() {
-        let url = getDocumentsDirectory().appendingPathComponent(fileName)
-        if let data = try? Data(contentsOf: url),
+    // MARK: - Persistence
+    private func saveEntries() {
+        if let encoded = try? JSONEncoder().encode(entries) {
+            UserDefaults.standard.set(encoded, forKey: "workouts")
+        }
+    }
+    
+    private func loadEntries() {
+        if let data = UserDefaults.standard.data(forKey: "workouts"),
            let decoded = try? JSONDecoder().decode([WorkoutEntry].self, from: data) {
             entries = decoded
         }
     }
+    
+    // MARK: - Helpers
+    func add(entry: WorkoutEntry) {
+        entries.append(entry)
+    }
+    
+    func delete(at offsets: IndexSet) {
+        entries.remove(atOffsets: offsets)
+    }
 }
+

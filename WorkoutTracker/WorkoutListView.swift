@@ -25,26 +25,32 @@ struct WorkoutListView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Full screen gradient
                 AppColors.gradient
                     .ignoresSafeArea()
                 
                 List {
-                    ForEach(workoutData.entries.sorted(by: { $0.date > $1.date })) { entry in
+                    // Sort indices by date descending
+                    let sortedIndices = workoutData.entries.indices.sorted { workoutData.entries[$0].date > workoutData.entries[$1].date }
+                    
+                    ForEach(sortedIndices, id: \.self) { sortedIndex in
+                        let entry = workoutData.entries[sortedIndex]
                         WorkoutCard(entry: entry)
-                            .listRowBackground(Color.clear) // transparent background
-                            .listRowSeparator(.hidden)      // hide separator
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
                     }
-                    .onDelete(perform: workoutData.delete)
+                    .onDelete { offsets in
+                        // Map offsets in sorted array back to original indices
+                        let indicesToDelete = offsets.map { sortedIndices[$0] }
+                        workoutData.entries.remove(atOffsets: IndexSet(indicesToDelete))
+                    }
                 }
-                .listStyle(PlainListStyle()) // remove extra padding & default style
+                .listStyle(PlainListStyle())
             }
             .navigationTitle("Workout History")
             .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
-
 
 // MARK: - Gradient Card
 struct WorkoutCard: View {
@@ -83,6 +89,7 @@ struct WorkoutCard: View {
         .padding(.horizontal)
     }
 }
+
 
 
 
