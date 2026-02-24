@@ -149,11 +149,12 @@ struct WorkoutChartView: View {
         }
     }
     
-    // Filter entries for selected exercise
+    // Filter entries for selected exercise - Only latest 25 entries
     func entries(for exercise: String) -> [WorkoutEntry] {
-        workoutData.entries
+        let sorted = workoutData.entries
             .filter { $0.exercise == exercise }
             .sorted { $0.date < $1.date }
+        return Array(sorted.suffix(25))
     }
     
     // Short date (e.g., "Oct 14")

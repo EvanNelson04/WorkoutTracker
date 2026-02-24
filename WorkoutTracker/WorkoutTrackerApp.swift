@@ -43,7 +43,7 @@ struct WorkoutTrackerApp: App {
                         Label("History", systemImage: "list.bullet")
                     }
                     
-                    // MARK: - Progress Tab (new combined chart + evaluation)
+                    // MARK: - Progress Tab
                     NavigationStack {
                         WorkoutProgressView()
                             .toolbar {
@@ -72,7 +72,7 @@ struct WorkoutTrackerApp: App {
                         Label("Awards", systemImage: "star.fill")
                     }
                     
-                    // Suggestions Tab
+                    // MARK: - Suggestions Tab
                     NavigationStack {
                         SuggestionsView()
                     }
@@ -80,17 +80,18 @@ struct WorkoutTrackerApp: App {
                         Label("Suggestions", systemImage: "figure.strengthtraining.traditional")
                     }
                     
-                    // Add Tab
+                    // MARK: - Add Tab
                     AddWorkoutView()
                         .tabItem {
                             Label("Add", systemImage: "plus.circle")
                         }
+
                 }
                 // 🌍 Share data and auth across tabs
                 .environmentObject(workoutData)
                 .environmentObject(auth)
                 .environmentObject(awardManager)
-                .tint(.white) // Make selected tab icon white for consistency
+                .tint(.white)
             } else {
                 LoginView()
                     .environmentObject(auth)
@@ -104,11 +105,10 @@ struct WorkoutTrackerApp: App {
         NavigationLink(destination: ProfileView()) {
             Image(systemName: "person.crop.circle")
                 .font(.title2)
-                .foregroundColor(.white) // ✅ White icon on gradient
+                .foregroundColor(.white)
         }
     }
 }
-
 
 
 
