@@ -18,13 +18,12 @@ struct RegisterView: View {
 
     var body: some View {
         ZStack {
-            // Unified app gradient background
             AppColors.gradient
                 .ignoresSafeArea()
 
             ScrollView {
                 VStack(spacing: 25) {
-                    // 🔹 Back Button
+                    // Back Button
                     HStack {
                         Button(action: { dismiss() }) {
                             Image(systemName: "chevron.left")
@@ -39,7 +38,6 @@ struct RegisterView: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 10)
 
-                    // Title
                     Text("Create Account")
                         .font(.title)
                         .bold()
@@ -52,19 +50,23 @@ struct RegisterView: View {
                             .background(Color.white.opacity(0.2))
                             .cornerRadius(12)
                             .foregroundColor(.white)
-                            .autocapitalization(.none)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .textContentType(.username)
 
                         SecureField("Password", text: $password)
                             .padding()
                             .background(Color.white.opacity(0.2))
                             .cornerRadius(12)
                             .foregroundColor(.white)
+                            .textContentType(.newPassword)
 
                         SecureField("Confirm Password", text: $confirmPassword)
                             .padding()
                             .background(Color.white.opacity(0.2))
                             .cornerRadius(12)
                             .foregroundColor(.white)
+                            .textContentType(.newPassword)
                     }
                     .padding(.horizontal, 30)
 
@@ -73,6 +75,8 @@ struct RegisterView: View {
                         Text(error)
                             .foregroundColor(.red.opacity(0.9))
                             .font(.caption)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 30)
                     }
 
                     // MARK: - Register Button
@@ -101,17 +105,31 @@ struct RegisterView: View {
     }
 
     private func register() {
-        guard !username.isEmpty, !password.isEmpty else {
+        let cleanUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanConfirmPassword = confirmPassword.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !cleanUsername.isEmpty, !cleanPassword.isEmpty, !cleanConfirmPassword.isEmpty else {
             errorMessage = "Please fill in all fields."
             return
         }
-        guard password == confirmPassword else {
+
+        guard cleanPassword == cleanConfirmPassword else {
             errorMessage = "Passwords do not match."
             return
         }
 
-        auth.register(username: username, password: password)
-        dismiss()
+        guard cleanPassword.count >= 6 else {
+            errorMessage = "Password must be at least 6 characters."
+            return
+        }
+
+        if auth.register(username: cleanUsername, password: cleanPassword) {
+            errorMessage = nil
+            dismiss()
+        } else {
+            errorMessage = "That username already exists."
+        }
     }
 }
 

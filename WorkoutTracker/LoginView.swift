@@ -16,7 +16,6 @@ struct LoginView: View {
 
     var body: some View {
         ZStack {
-            // Unified app gradient background
             AppColors.gradient
                 .ignoresSafeArea()
 
@@ -29,7 +28,7 @@ struct LoginView: View {
                         .frame(width: 120, height: 120)
                         .clipShape(RoundedRectangle(cornerRadius: 25))
                         .shadow(radius: 10)
-                    
+
                     Text("WorkoutTracker")
                         .font(.title2)
                         .fontWeight(.bold)
@@ -46,13 +45,16 @@ struct LoginView: View {
                         .background(Color.white.opacity(0.2))
                         .cornerRadius(12)
                         .foregroundColor(.white)
-                        .autocapitalization(.none)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .textContentType(.username)
 
                     SecureField("Password", text: $password)
                         .padding()
                         .background(Color.white.opacity(0.2))
                         .cornerRadius(12)
                         .foregroundColor(.white)
+                        .textContentType(.password)
                 }
                 .padding(.horizontal, 40)
 
@@ -98,8 +100,18 @@ struct LoginView: View {
     }
 
     private func login() {
-        if auth.login(username: username, password: password) {
+        let cleanUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !cleanUsername.isEmpty, !cleanPassword.isEmpty else {
+            errorMessage = "Please enter both username and password."
+            return
+        }
+
+        if auth.login(username: cleanUsername, password: cleanPassword) {
             errorMessage = nil
+            username = ""
+            password = ""
         } else {
             errorMessage = "Invalid username or password."
         }

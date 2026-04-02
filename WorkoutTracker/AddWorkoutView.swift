@@ -16,7 +16,6 @@ struct AddWorkoutView: View {
     @State private var exercise = ""
     @State private var weight = ""
     @State private var reps = ""
-    @State private var heartRate = ""
     
     @State private var showConfirmation = false
     @State private var isPressed = false
@@ -91,17 +90,6 @@ struct AddWorkoutView: View {
                             .background(Color.white.opacity(0.2))
                             .cornerRadius(12)
                             
-                            // Heart Rate
-                            HStack {
-                                Image(systemName: "heart.fill")
-                                    .foregroundColor(.red)
-                                TextField("Heart Rate (optional)", text: $heartRate)
-                                    .keyboardType(.decimalPad)
-                                    .foregroundColor(.white)
-                            }
-                            .padding()
-                            .background(Color.white.opacity(0.2))
-                            .cornerRadius(12)
                         }
                         .padding(.horizontal)
                         
@@ -162,7 +150,6 @@ struct AddWorkoutView: View {
             exercise: cleanExercise,
             weight: Double(weight) ?? 0,
             reps: Int(reps) ?? 0,
-            heartRate: Double(heartRate)
         )
 
         workoutData.add(entry: entry)

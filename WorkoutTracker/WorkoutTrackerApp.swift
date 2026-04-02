@@ -1,36 +1,29 @@
-//
-//  WorkoutTrackerApp.swift
-//  WorkoutTracker
-//
-//  Created by Evan Nelson on 9/23/25.
-//
-
 import SwiftUI
 import Charts
 
 @main
 struct WorkoutTrackerApp: App {
-    @StateObject var workoutData = WorkoutData()
-    @StateObject var auth = UserAuth()
-    @StateObject var awardManager = AwardManager()
-    
+    @StateObject private var auth: UserAuth
+    @StateObject private var workoutData: WorkoutData
+    @StateObject private var awardManager = AwardManager()
+
     init() {
-        // Make all navigation elements (titles, back arrows, icons) white
+        let authInstance = UserAuth()
+        _auth = StateObject(wrappedValue: authInstance)
+        _workoutData = StateObject(wrappedValue: WorkoutData(auth: authInstance))
+
         UINavigationBar.appearance().largeTitleTextAttributes = [.foregroundColor: UIColor.white]
         UINavigationBar.appearance().titleTextAttributes = [.foregroundColor: UIColor.white]
         UINavigationBar.appearance().tintColor = .white
-        
-        // Make the tab bar always have a visible background
+
         UITabBar.appearance().backgroundColor = UIColor.systemGray6.withAlphaComponent(0.95)
         UITabBar.appearance().barTintColor = UIColor.systemGray6
     }
-    
+
     var body: some Scene {
         WindowGroup {
             if auth.isLoggedIn {
                 TabView {
-                    
-                    // MARK: - History Tab
                     NavigationStack {
                         WorkoutListView()
                             .toolbar {
@@ -42,8 +35,7 @@ struct WorkoutTrackerApp: App {
                     .tabItem {
                         Label("History", systemImage: "list.bullet")
                     }
-                    
-                    // MARK: - Progress Tab
+
                     NavigationStack {
                         WorkoutProgressView()
                             .toolbar {
@@ -55,8 +47,7 @@ struct WorkoutTrackerApp: App {
                     .tabItem {
                         Label("Progress", systemImage: "chart.line.uptrend.xyaxis")
                     }
-                    
-                    // MARK: - Awards Tab
+
                     NavigationStack {
                         AwardsView()
                             .onAppear {
@@ -71,23 +62,19 @@ struct WorkoutTrackerApp: App {
                     .tabItem {
                         Label("Awards", systemImage: "star.fill")
                     }
-                    
-                    // MARK: - Suggestions Tab
+
                     NavigationStack {
                         SuggestionsView()
                     }
                     .tabItem {
                         Label("Suggestions", systemImage: "figure.strengthtraining.traditional")
                     }
-                    
-                    // MARK: - Add Tab
+
                     AddWorkoutView()
                         .tabItem {
                             Label("Add", systemImage: "plus.circle")
                         }
-
                 }
-                // 🌍 Share data and auth across tabs
                 .environmentObject(workoutData)
                 .environmentObject(auth)
                 .environmentObject(awardManager)
@@ -95,11 +82,12 @@ struct WorkoutTrackerApp: App {
             } else {
                 LoginView()
                     .environmentObject(auth)
+                    .environmentObject(workoutData)
+                    .environmentObject(awardManager)
             }
         }
     }
-    
-    // MARK: - Profile Button
+
     @ViewBuilder
     private func profileButton() -> some View {
         NavigationLink(destination: ProfileView()) {
