@@ -23,6 +23,14 @@ struct AwardsView: View {
                 ScrollView {
                     LazyVStack(spacing: 16) {
                         
+                        // Custom Title
+                        Text("Awards")
+                            .font(.largeTitle)
+                            .bold()
+                            .foregroundColor(.white)
+                            .padding(.top, 20)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                        
                         // Trophy Case Button at the top
                         Button(action: {
                             showTrophyCase.toggle()
@@ -86,8 +94,7 @@ struct AwardsView: View {
                     .padding()
                 }
             }
-            .navigationTitle("Awards")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarHidden(true)
             .sheet(item: $selectedAward) { award in
                 AwardDetailView(award: award)
             }

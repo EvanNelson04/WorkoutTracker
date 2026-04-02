@@ -28,26 +28,35 @@ struct WorkoutListView: View {
                 AppColors.gradient
                     .ignoresSafeArea()
                 
-                List {
-                    // Sort indices by date descending
-                    let sortedIndices = workoutData.entries.indices.sorted { workoutData.entries[$0].date > workoutData.entries[$1].date }
+                VStack(spacing: 0) {
                     
-                    ForEach(sortedIndices, id: \.self) { sortedIndex in
-                        let entry = workoutData.entries[sortedIndex]
-                        WorkoutCard(entry: entry)
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
+                    // Custom Title
+                    Text("Workout History")
+                        .font(.largeTitle)
+                        .bold()
+                        .foregroundColor(.white)
+                        .padding(.top, 20)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    
+                    List {
+                        let sortedIndices = workoutData.entries.indices.sorted { workoutData.entries[$0].date > workoutData.entries[$1].date }
+                        
+                        ForEach(sortedIndices, id: \.self) { sortedIndex in
+                            let entry = workoutData.entries[sortedIndex]
+                            WorkoutCard(entry: entry)
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+                        }
+                        .onDelete { offsets in
+                            let indicesToDelete = offsets.map { sortedIndices[$0] }
+                            workoutData.entries.remove(atOffsets: IndexSet(indicesToDelete))
+                        }
                     }
-                    .onDelete { offsets in
-                        // Map offsets in sorted array back to original indices
-                        let indicesToDelete = offsets.map { sortedIndices[$0] }
-                        workoutData.entries.remove(atOffsets: IndexSet(indicesToDelete))
-                    }
+                    .listStyle(PlainListStyle())
+                    .scrollContentBackground(.hidden)
                 }
-                .listStyle(PlainListStyle())
             }
-            .navigationTitle("Workout History")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarHidden(true)
         }
     }
 }
