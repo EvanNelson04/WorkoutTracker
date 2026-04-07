@@ -22,16 +22,16 @@ final class KeychainManager {
     private let service = "com.evannelson.workouttracker.credentials"
 
     func savePassword(_ password: String, for username: String) throws {
+        let cleanUsername = normalizedUsername(username)
         let data = Data(password.utf8)
 
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: username,
+            kSecAttrAccount as String: cleanUsername,
             kSecValueData as String: data
         ]
 
-        // Remove old item if it exists so save acts like overwrite
         SecItemDelete(query as CFDictionary)
 
         let status = SecItemAdd(query as CFDictionary, nil)
@@ -41,10 +41,12 @@ final class KeychainManager {
     }
 
     func getPassword(for username: String) throws -> String {
+        let cleanUsername = normalizedUsername(username)
+
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: username,
+            kSecAttrAccount as String: cleanUsername,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]
@@ -89,15 +91,24 @@ final class KeychainManager {
     }
 
     func deletePassword(for username: String) throws {
+        let cleanUsername = normalizedUsername(username)
+
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: username
+            kSecAttrAccount as String: cleanUsername
         ]
 
         let status = SecItemDelete(query as CFDictionary)
+
         guard status == errSecSuccess || status == errSecItemNotFound else {
             throw KeychainError.unexpectedStatus(status)
         }
+    }
+
+    private func normalizedUsername(_ username: String) -> String {
+        username
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
     }
 }

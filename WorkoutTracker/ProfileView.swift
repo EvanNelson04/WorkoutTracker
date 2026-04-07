@@ -10,17 +10,18 @@ import SwiftUI
 struct ProfileView: View {
     @EnvironmentObject var auth: UserAuth
     @EnvironmentObject var workoutData: WorkoutData
+    
+    @State private var showDeleteAccountAlert = false
+    @State private var showDeleteSuccessAlert = false
 
     var body: some View {
         NavigationView {
             ZStack {
-                // Gradient background
                 AppColors.gradient
                     .ignoresSafeArea()
                 
                 ScrollView {
                     VStack(spacing: 20) {
-                        // Welcome Section
                         VStack(spacing: 8) {
                             Text("👋 Welcome, \(auth.username)")
                                 .font(.title2)
@@ -31,7 +32,6 @@ struct ProfileView: View {
                         }
                         .padding(.top, 30)
                         
-                        // Stats Card
                         VStack(alignment: .leading, spacing: 16) {
                             let totalWorkouts = workoutData.entries.count
                             let uniqueExercises = Set(workoutData.entries.map { $0.exercise }).count
@@ -56,7 +56,6 @@ struct ProfileView: View {
 
                             Divider().background(Color.white.opacity(0.7))
                             
-                            // Personal Records
                             let squatPR = workoutData.entries
                                 .filter { $0.exercise.lowercased().contains("squat") }
                                 .map { $0.weight }
@@ -81,7 +80,7 @@ struct ProfileView: View {
                                 Text("🏋️‍♂️ Squat:")
                                     .foregroundColor(.white.opacity(0.9))
                                 Spacer()
-                                Text("\(squatPR == 0 ? "—" : "\(Int(squatPR)) lbs")")
+                                Text(squatPR == 0 ? "—" : "\(Int(squatPR)) lbs")
                                     .bold()
                                     .foregroundColor(.white)
                             }
@@ -90,7 +89,7 @@ struct ProfileView: View {
                                 Text("💪 Bench:")
                                     .foregroundColor(.white.opacity(0.9))
                                 Spacer()
-                                Text("\(benchPR == 0 ? "—" : "\(Int(benchPR)) lbs")")
+                                Text(benchPR == 0 ? "—" : "\(Int(benchPR)) lbs")
                                     .bold()
                                     .foregroundColor(.white)
                             }
@@ -99,7 +98,7 @@ struct ProfileView: View {
                                 Text("⚡️ Deadlift:")
                                     .foregroundColor(.white.opacity(0.9))
                                 Spacer()
-                                Text("\(deadliftPR == 0 ? "—" : "\(Int(deadliftPR)) lbs")")
+                                Text(deadliftPR == 0 ? "—" : "\(Int(deadliftPR)) lbs")
                                     .bold()
                                     .foregroundColor(.white)
                             }
@@ -121,25 +120,38 @@ struct ProfileView: View {
                         .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 2)
                         .padding(.horizontal)
                         
-                        // Logout Button
-                        Button(action: {
-                            auth.logout()
-                        }) {
-                            Text("Log Out")
-                                .font(.headline)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(
-                                    LinearGradient(
-                                        colors: [Color.green, Color.blue],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
+                        VStack(spacing: 14) {
+                            Button(action: {
+                                auth.logout()
+                            }) {
+                                Text("Log Out")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(
+                                        LinearGradient(
+                                            colors: [Color.green, Color.blue],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
                                     )
-                                )
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                                .padding(.horizontal)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(12)
+                            }
+                            
+                            Button(action: {
+                                showDeleteAccountAlert = true
+                            }) {
+                                Text("Delete Account")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.red.opacity(0.9))
+                                    .foregroundColor(.white)
+                                    .cornerRadius(12)
+                            }
                         }
+                        .padding(.horizontal)
                         .padding(.bottom, 40)
                     }
                     .padding(.vertical)
@@ -147,7 +159,26 @@ struct ProfileView: View {
             }
             .navigationTitle("Profile")
             .navigationBarTitleDisplayMode(.inline)
+            .alert("Delete Account?", isPresented: $showDeleteAccountAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive) {
+                    performAccountDeletion()
+                }
+            } message: {
+                Text("This will permanently delete your account and all saved workout data on this device.")
+            }
+            .alert("Account Deleted", isPresented: $showDeleteSuccessAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Your account and stored data have been permanently deleted.")
+            }
         }
+    }
+    
+    private func performAccountDeletion() {
+        workoutData.clearCurrentUserWorkouts()
+        auth.deleteAccount()
+        showDeleteSuccessAlert = true
     }
 }
 

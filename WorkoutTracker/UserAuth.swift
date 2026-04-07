@@ -76,6 +76,26 @@ final class UserAuth: ObservableObject {
         UserDefaults.standard.set(false, forKey: isLoggedInKey)
     }
 
+    func deleteAccount() {
+        let usernameToDelete = loggedInUsername
+
+        guard !usernameToDelete.isEmpty else {
+            return
+        }
+
+        do {
+            try KeychainManager.shared.deletePassword(for: usernameToDelete)
+        } catch {
+            print("Failed to delete account from Keychain: \(error)")
+        }
+
+        loggedInUsername = ""
+        isLoggedIn = false
+
+        UserDefaults.standard.removeObject(forKey: currentUsernameKey)
+        UserDefaults.standard.set(false, forKey: isLoggedInKey)
+    }
+
     var username: String {
         loggedInUsername
     }

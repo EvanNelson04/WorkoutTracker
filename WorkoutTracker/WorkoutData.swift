@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftUI
 import Combine
 
 @MainActor
@@ -27,7 +26,8 @@ final class WorkoutData: ObservableObject {
 
         auth.$isLoggedIn
             .sink { [weak self] isLoggedIn in
-                guard let self else { return }
+                guard let self = self else { return }
+
                 if isLoggedIn {
                     self.loadEntries()
                 } else {
@@ -58,7 +58,7 @@ final class WorkoutData: ObservableObject {
             let encoded = try JSONEncoder().encode(entries)
             UserDefaults.standard.set(encoded, forKey: key)
         } catch {
-            return
+            print("Failed to save entries: \(error)")
         }
     }
 
@@ -77,6 +77,7 @@ final class WorkoutData: ObservableObject {
             let decoded = try JSONDecoder().decode([WorkoutEntry].self, from: data)
             entries = decoded
         } catch {
+            print("Failed to load entries: \(error)")
             entries = []
         }
     }
@@ -92,8 +93,12 @@ final class WorkoutData: ObservableObject {
     }
 
     func clearCurrentUserWorkouts() {
-        entries = []
-        saveEntries()
+        guard let key = currentWorkoutsKey() else {
+            entries = []
+            return
+        }
+
+        entries.removeAll()
+        UserDefaults.standard.removeObject(forKey: key)
     }
 }
-

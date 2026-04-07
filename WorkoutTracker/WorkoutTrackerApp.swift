@@ -65,12 +65,20 @@ struct WorkoutTrackerApp: App {
 
                     NavigationStack {
                         SuggestionsView()
+                            .toolbar {
+                                ToolbarItem(placement: .navigationBarTrailing) {
+                                    profileButton()
+                                }
+                            }
                     }
                     .tabItem {
                         Label("Suggestions", systemImage: "figure.strengthtraining.traditional")
                     }
 
                     AddWorkoutView()
+                        .environmentObject(workoutData)
+                        .environmentObject(auth)
+                        .environmentObject(awardManager)
                         .tabItem {
                             Label("Add", systemImage: "plus.circle")
                         }
