@@ -10,14 +10,29 @@ import Foundation
 final class UserAuth: ObservableObject {
     @Published private(set) var loggedInUsername: String = ""
     @Published var isLoggedIn: Bool = false
+    @Published private(set) var isGuest: Bool = false
 
     private let currentUsernameKey = "CurrentUsername"
     private let isLoggedInKey = "IsLoggedIn"
+    private let isGuestKey = "IsGuest"
 
     init() {
-        // Keep app launch simple and secure: no automatic login
+        // Keep app launch simple: no automatic login
         loggedInUsername = ""
         isLoggedIn = false
+        isGuest = false
+    }
+
+    func continueAsGuest(with name: String = "") {
+        let cleanName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        loggedInUsername = cleanName
+        isLoggedIn = true
+        isGuest = true
+
+        UserDefaults.standard.set(cleanName, forKey: currentUsernameKey)
+        UserDefaults.standard.set(true, forKey: isLoggedInKey)
+        UserDefaults.standard.set(true, forKey: isGuestKey)
     }
 
     func login(username: String, password: String) -> Bool {
@@ -33,9 +48,11 @@ final class UserAuth: ObservableObject {
         if isValid {
             loggedInUsername = cleanUsername
             isLoggedIn = true
+            isGuest = false
 
             UserDefaults.standard.set(cleanUsername, forKey: currentUsernameKey)
             UserDefaults.standard.set(true, forKey: isLoggedInKey)
+            UserDefaults.standard.set(false, forKey: isGuestKey)
         }
 
         return isValid
@@ -58,9 +75,11 @@ final class UserAuth: ObservableObject {
 
             loggedInUsername = cleanUsername
             isLoggedIn = true
+            isGuest = false
 
             UserDefaults.standard.set(cleanUsername, forKey: currentUsernameKey)
             UserDefaults.standard.set(true, forKey: isLoggedInKey)
+            UserDefaults.standard.set(false, forKey: isGuestKey)
 
             return true
         } catch {
@@ -71,9 +90,11 @@ final class UserAuth: ObservableObject {
     func logout() {
         loggedInUsername = ""
         isLoggedIn = false
+        isGuest = false
 
         UserDefaults.standard.removeObject(forKey: currentUsernameKey)
         UserDefaults.standard.set(false, forKey: isLoggedInKey)
+        UserDefaults.standard.set(false, forKey: isGuestKey)
     }
 
     func deleteAccount() {
@@ -83,17 +104,21 @@ final class UserAuth: ObservableObject {
             return
         }
 
-        do {
-            try KeychainManager.shared.deletePassword(for: usernameToDelete)
-        } catch {
-            print("Failed to delete account from Keychain: \(error)")
+        if !isGuest {
+            do {
+                try KeychainManager.shared.deletePassword(for: usernameToDelete)
+            } catch {
+                print("Failed to delete account from Keychain: \(error)")
+            }
         }
 
         loggedInUsername = ""
         isLoggedIn = false
+        isGuest = false
 
         UserDefaults.standard.removeObject(forKey: currentUsernameKey)
         UserDefaults.standard.set(false, forKey: isLoggedInKey)
+        UserDefaults.standard.set(false, forKey: isGuestKey)
     }
 
     var username: String {

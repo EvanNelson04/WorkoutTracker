@@ -9,10 +9,10 @@ import SwiftUI
 
 struct LoginView: View {
     @EnvironmentObject var auth: UserAuth
-    @State private var username: String = ""
-    @State private var password: String = ""
-    @State private var showRegister = false
-    @State private var errorMessage: String?
+    @AppStorage("DisplayName") private var displayName: String = ""
+    @AppStorage("HasLaunchedBefore") private var hasLaunchedBefore: Bool = false
+
+    @State private var enteredName: String = ""
 
     var body: some View {
         ZStack {
@@ -20,8 +20,9 @@ struct LoginView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 25) {
-                // MARK: - Logo
-                VStack(spacing: 8) {
+                Spacer()
+
+                VStack(spacing: 12) {
                     Image("AppLogo")
                         .resizable()
                         .scaledToFit()
@@ -33,88 +34,103 @@ struct LoginView: View {
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
+
+                    Text(hasLaunchedBefore ? "Welcome Back" : "Welcome")
+                        .font(.title)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+
+                    if hasLaunchedBefore {
+                        if displayName.isEmpty {
+                            Text("Ready to get back to your workouts?")
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.85))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 30)
+                        } else {
+                            Text("Welcome back, \(displayName)")
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.85))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 30)
+                        }
+                    } else {
+                        Text("Enter a name to personalize your experience")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.85))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 30)
+                    }
                 }
-                .padding(.top, 60)
 
-                Spacer(minLength: 20)
-
-                // MARK: - Login Fields
                 VStack(spacing: 16) {
-                    TextField("Username", text: $username)
-                        .padding()
-                        .background(Color.white.opacity(0.2))
-                        .cornerRadius(12)
-                        .foregroundColor(.white)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .textContentType(.username)
+                    if !hasLaunchedBefore {
+                        TextField("Your name (optional)", text: $enteredName)
+                            .padding()
+                            .background(Color.white.opacity(0.2))
+                            .cornerRadius(12)
+                            .foregroundColor(.white)
+                            .textInputAutocapitalization(.words)
+                            .autocorrectionDisabled()
+                    }
 
-                    SecureField("Password", text: $password)
-                        .padding()
-                        .background(Color.white.opacity(0.2))
-                        .cornerRadius(12)
-                        .foregroundColor(.white)
-                        .textContentType(.password)
+                    Button(action: continueIntoApp) {
+                        Text("Continue")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(
+                                LinearGradient(
+                                    colors: [Color.green, Color.blue],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
+                    }
+
+                    if !hasLaunchedBefore {
+                        Button(action: skipForNow) {
+                            Text("Skip for Now")
+                                .foregroundColor(.white.opacity(0.9))
+                                .underline()
+                        }
+                    } else {
+                        Button(action: editName) {
+                            Text("Edit Name")
+                                .foregroundColor(.white.opacity(0.9))
+                                .underline()
+                        }
+                    }
                 }
                 .padding(.horizontal, 40)
 
-                // MARK: - Error Message
-                if let error = errorMessage {
-                    Text(error)
-                        .foregroundColor(.red.opacity(0.9))
-                        .font(.caption)
-                        .padding(.top, 4)
-                }
-
-                // MARK: - Login Button
-                Button(action: login) {
-                    Text("Login")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(
-                            LinearGradient(
-                                colors: [Color.green, Color.blue],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-                        .padding(.horizontal, 40)
-                }
-
-                // MARK: - Register Option
-                Button(action: { showRegister.toggle() }) {
-                    Text("Create Account")
-                        .foregroundColor(.white.opacity(0.9))
-                        .underline()
-                }
-                .padding(.bottom, 40)
+                Spacer()
             }
+            .padding(.vertical, 40)
         }
-        .sheet(isPresented: $showRegister) {
-            RegisterView()
-                .environmentObject(auth)
+        .onAppear {
+            enteredName = displayName
         }
     }
 
-    private func login() {
-        let cleanUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
-        let cleanPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
+    private func continueIntoApp() {
+        let cleanName = enteredName.trimmingCharacters(in: .whitespacesAndNewlines)
+        displayName = cleanName
+        hasLaunchedBefore = true
+        auth.continueAsGuest(with: cleanName)
+    }
 
-        guard !cleanUsername.isEmpty, !cleanPassword.isEmpty else {
-            errorMessage = "Please enter both username and password."
-            return
-        }
+    private func skipForNow() {
+        displayName = ""
+        hasLaunchedBefore = true
+        auth.continueAsGuest(with: "")
+    }
 
-        if auth.login(username: cleanUsername, password: cleanPassword) {
-            errorMessage = nil
-            username = ""
-            password = ""
-        } else {
-            errorMessage = "Invalid username or password."
-        }
+    private func editName() {
+        hasLaunchedBefore = false
+        enteredName = displayName
     }
 }
 

@@ -4,7 +4,6 @@
 //
 //  Created by Evan Nelson on 4/1/26.
 //
-//
 
 import Foundation
 import Security
@@ -25,18 +24,38 @@ final class KeychainManager {
         let cleanUsername = normalizedUsername(username)
         let data = Data(password.utf8)
 
-        let query: [String: Any] = [
+        let baseQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: cleanUsername
+        ]
+
+        let attributesToUpdate: [String: Any] = [
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlocked
+        ]
+
+        let updateStatus = SecItemUpdate(baseQuery as CFDictionary, attributesToUpdate as CFDictionary)
+
+        if updateStatus == errSecSuccess {
+            return
+        }
+
+        if updateStatus != errSecItemNotFound {
+            throw KeychainError.unexpectedStatus(updateStatus)
+        }
+
+        let addQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: cleanUsername,
-            kSecValueData as String: data
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlocked
         ]
 
-        SecItemDelete(query as CFDictionary)
-
-        let status = SecItemAdd(query as CFDictionary, nil)
-        guard status == errSecSuccess else {
-            throw KeychainError.unexpectedStatus(status)
+        let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
+        guard addStatus == errSecSuccess else {
+            throw KeychainError.unexpectedStatus(addStatus)
         }
     }
 
