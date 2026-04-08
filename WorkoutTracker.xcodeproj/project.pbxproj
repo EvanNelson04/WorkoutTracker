@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		050990702E831C63004E6AD8 /* WorkoutTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WorkoutTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		050990702E831C63004E6AD8 /* WorkoutEvaluator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WorkoutEvaluator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0535C1122F4379A600359D30 /* WorkoutTracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = WorkoutTracker.xcodeproj; sourceTree = "<group>"; };
 		0535C1A02F4CD14200359D30 /* WorkoutTracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = WorkoutTracker.xcodeproj; sourceTree = "<group>"; };
 		05F6E8BB2F4E023E00800097 /* WorkoutTracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = WorkoutTracker.xcodeproj; sourceTree = "<group>"; };
@@ -43,7 +43,7 @@
 		050990712E831C63004E6AD8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				050990702E831C63004E6AD8 /* WorkoutTracker.app */,
+				050990702E831C63004E6AD8 /* WorkoutEvaluator.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -66,9 +66,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		0509906F2E831C63004E6AD8 /* WorkoutTracker */ = {
+		0509906F2E831C63004E6AD8 /* WorkoutEvaluator */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0509907B2E831C65004E6AD8 /* Build configuration list for PBXNativeTarget "WorkoutTracker" */;
+			buildConfigurationList = 0509907B2E831C65004E6AD8 /* Build configuration list for PBXNativeTarget "WorkoutEvaluator" */;
 			buildPhases = (
 				0509906C2E831C63004E6AD8 /* Sources */,
 				0509906D2E831C63004E6AD8 /* Frameworks */,
@@ -81,11 +81,11 @@
 			fileSystemSynchronizedGroups = (
 				050990722E831C63004E6AD8 /* WorkoutTracker */,
 			);
-			name = WorkoutTracker;
+			name = WorkoutEvaluator;
 			packageProductDependencies = (
 			);
 			productName = WorkoutTracker;
-			productReference = 050990702E831C63004E6AD8 /* WorkoutTracker.app */;
+			productReference = 050990702E831C63004E6AD8 /* WorkoutEvaluator.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -131,7 +131,7 @@
 			);
 			projectRoot = "";
 			targets = (
-				0509906F2E831C63004E6AD8 /* WorkoutTracker */,
+				0509906F2E831C63004E6AD8 /* WorkoutEvaluator */,
 			);
 		};
 /* End PBXProject section */
@@ -299,7 +299,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.EvanNelson.WorkoutTracker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -327,7 +327,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.EvanNelson.WorkoutTracker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -348,7 +348,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		0509907B2E831C65004E6AD8 /* Build configuration list for PBXNativeTarget "WorkoutTracker" */ = {
+		0509907B2E831C65004E6AD8 /* Build configuration list for PBXNativeTarget "WorkoutEvaluator" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0509907C2E831C65004E6AD8 /* Debug */,
