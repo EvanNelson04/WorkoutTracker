@@ -20,12 +20,19 @@ struct AddWorkoutView: View {
     @State private var showConfirmation = false
     @State private var isPressed = false
     
+    @FocusState private var focusedField: Field?
+    
+    private enum Field {
+        case exercise
+        case weight
+        case reps
+    }
+    
     private let muscleGroups = ["Chest", "Back", "Legs", "Arms", "Shoulders", "Core"]
     
     var body: some View {
         NavigationView {
             ZStack {
-                // Gradient background
                 AppColors.gradient
                     .ignoresSafeArea()
                 
@@ -37,9 +44,7 @@ struct AddWorkoutView: View {
                             .foregroundColor(.white)
                             .padding(.top, 20)
                         
-                        // MARK: - Exercise Info Section
                         VStack(spacing: 15) {
-                            // Muscle Group Picker
                             HStack {
                                 Image(systemName: "figure.strengthtraining.traditional")
                                     .foregroundColor(.white)
@@ -55,47 +60,51 @@ struct AddWorkoutView: View {
                             .background(Color.white.opacity(0.2))
                             .cornerRadius(12)
                             
-                            // Exercise
                             HStack {
                                 Image(systemName: "dumbbell.fill")
                                     .foregroundColor(.purple)
                                 TextField("Exercise", text: $exercise)
                                     .foregroundColor(.white)
+                                    .focused($focusedField, equals: .exercise)
+                                    .submitLabel(.next)
+                                    .onSubmit {
+                                        focusedField = .weight
+                                    }
                             }
                             .padding()
                             .background(Color.white.opacity(0.2))
                             .cornerRadius(12)
                             
-                            // Weight
                             HStack {
                                 Image(systemName: "scalemass.fill")
                                     .foregroundColor(.green)
                                 TextField("Weight (lbs)", text: $weight)
                                     .keyboardType(.decimalPad)
                                     .foregroundColor(.white)
+                                    .focused($focusedField, equals: .weight)
                             }
                             .padding()
                             .background(Color.white.opacity(0.2))
                             .cornerRadius(12)
                             
-                            // Reps
                             HStack {
                                 Image(systemName: "repeat")
                                     .foregroundColor(.orange)
                                 TextField("Reps", text: $reps)
                                     .keyboardType(.numberPad)
                                     .foregroundColor(.white)
+                                    .focused($focusedField, equals: .reps)
                             }
                             .padding()
                             .background(Color.white.opacity(0.2))
                             .cornerRadius(12)
-                            
                         }
                         .padding(.horizontal)
                         
-                        // MARK: - Save Button
                         Button(action: {
+                            focusedField = nil
                             isPressed = true
+                            
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                 isPressed = false
                                 saveWorkout()
@@ -127,11 +136,11 @@ struct AddWorkoutView: View {
             .navigationBarTitleDisplayMode(.inline)
             .alert("Workout Added!", isPresented: $showConfirmation) {
                 Button("OK") {
+                    focusedField = nil
                     awardManager.evaluateAwards(for: workoutData.entries)
                     dismiss()
                 }
             }
-            // Award popup sheet — fires after OK is tapped if an award was unlocked
             .sheet(item: $awardManager.activePopup) { popup in
                 AwardPopupView(popup: popup) {
                     awardManager.dismissCurrentPopup()
@@ -149,7 +158,7 @@ struct AddWorkoutView: View {
             muscleGroup: cleanMuscleGroup,
             exercise: cleanExercise,
             weight: Double(weight) ?? 0,
-            reps: Int(reps) ?? 0,
+            reps: Int(reps) ?? 0
         )
 
         workoutData.add(entry: entry)

@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-// Shared gradient matching your login page
 struct AppColors {
     static let gradient = LinearGradient(
         colors: [
@@ -29,8 +28,6 @@ struct WorkoutListView: View {
                     .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    
-                    // Custom Title
                     Text("Workout History")
                         .font(.largeTitle)
                         .bold()
@@ -39,7 +36,9 @@ struct WorkoutListView: View {
                         .frame(maxWidth: .infinity, alignment: .center)
                     
                     List {
-                        let sortedIndices = workoutData.entries.indices.sorted { workoutData.entries[$0].date > workoutData.entries[$1].date }
+                        let sortedIndices = workoutData.entries.indices.sorted {
+                            workoutData.entries[$0].date > workoutData.entries[$1].date
+                        }
                         
                         ForEach(sortedIndices, id: \.self) { sortedIndex in
                             let entry = workoutData.entries[sortedIndex]
@@ -49,7 +48,7 @@ struct WorkoutListView: View {
                         }
                         .onDelete { offsets in
                             let indicesToDelete = offsets.map { sortedIndices[$0] }
-                            workoutData.entries.remove(atOffsets: IndexSet(indicesToDelete))
+                            workoutData.delete(at: IndexSet(indicesToDelete))
                         }
                     }
                     .listStyle(PlainListStyle())
@@ -61,7 +60,6 @@ struct WorkoutListView: View {
     }
 }
 
-// MARK: - Gradient Card
 struct WorkoutCard: View {
     var entry: WorkoutEntry
     

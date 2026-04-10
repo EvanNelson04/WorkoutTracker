@@ -255,7 +255,14 @@ struct SuggestionsData {
             SuggestionMuscle(name: "Calves", exercises: [
                 SuggestionExercise(name: "Standing Calf Raise", tips: ["Full stretch", "Pause at top", "Slow tempo"]),
                 SuggestionExercise(name: "Seated Calf Raise", tips: ["Controlled reps", "Deep stretch", "Don't bounce"])
-            ])
+            ]),
+            SuggestionMuscle(name: "Glutes", exercises: [
+                SuggestionExercise(name: "Hip Thrust", tips: ["Drive through heels", "Squeeze glutes at top", "Keep chin tucked"]),
+                SuggestionExercise(name: "Bulgarian Split Squat", tips: ["Stay balanced", "Lower with control", "Push through front heel"]),
+                SuggestionExercise(name: "Cable Kickback", tips: ["Keep torso still", "Squeeze at full extension", "Use controlled motion"]),
+                SuggestionExercise(name: "Hip Abduction", tips: ["Lead with outer glutes", "Control the return", "Avoid swinging"]),
+                SuggestionExercise(name: "Hip Adduction", tips: ["Move slowly", "Squeeze inner thighs", "Keep hips steady"])
+            ]),
         ],
         .core: [
             SuggestionMuscle(name: "Abs", exercises: [

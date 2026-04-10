@@ -5,6 +5,13 @@
 //  Created by Evan Nelson on 9/23/25.
 //
 
+//
+//  WorkoutData.swift
+//  WorkoutTracker
+//
+//  Created by Evan Nelson on 9/23/25.
+//
+
 import Foundation
 import Combine
 
@@ -89,6 +96,11 @@ final class WorkoutData: ObservableObject {
 
     func delete(at offsets: IndexSet) {
         entries.remove(atOffsets: offsets)
+        saveEntries()
+    }
+
+    func delete(entry: WorkoutEntry) {
+        entries.removeAll { $0.id == entry.id }
         saveEntries()
     }
 
