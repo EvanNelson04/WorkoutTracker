@@ -35,6 +35,9 @@ struct AddWorkoutView: View {
             ZStack {
                 AppColors.gradient
                     .ignoresSafeArea()
+                    .onTapGesture {
+                        focusedField = nil
+                    }
                 
                 ScrollView {
                     VStack(spacing: 20) {
@@ -132,6 +135,15 @@ struct AddWorkoutView: View {
                     }
                     .padding(.vertical)
                 }
+                .scrollDismissesKeyboard(.interactively)
+            }
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        focusedField = nil
+                    }
+                }
             }
             .navigationBarTitleDisplayMode(.inline)
             .alert("Workout Added!", isPresented: $showConfirmation) {
@@ -165,7 +177,6 @@ struct AddWorkoutView: View {
         showConfirmation = true
     }
 }
-
 
 
 
