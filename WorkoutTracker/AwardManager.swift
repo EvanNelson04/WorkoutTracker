@@ -35,7 +35,6 @@ class AwardManager: ObservableObject {
     private let baseGoals: [String: Int] = [
         "10-Day Streak":    10,
         "Workouts Logged":  50,
-        "Big Three Club":   1000,
         "All-Rounder":      5,
         "Gym Rat":          15,
         "Early Bird":       10,
@@ -44,16 +43,16 @@ class AwardManager: ObservableObject {
     ]
 
     private let defaultAwards: [Award] = [
-        Award(title: "10-Day Streak",   description: "Workout 10 days in a row.",   icon: "🔥", achieved: false),
-        Award(title: "Workouts Logged", description: "Log workouts to level up.",    icon: "🏆", achieved: false, tier: 1, maxTier: 5, nextTierGoal: 50),
-        Award(title: "Bench Press PR",  description: "Increase bench weight.",       icon: "💪", achieved: false, tier: 1, maxTier: 4, nextTierGoal: nil),
-        Award(title: "Squat PR",        description: "Increase squat weight.",       icon: "🦵", achieved: false, tier: 1, maxTier: 3, nextTierGoal: nil),
-        Award(title: "Big Three Club",  description: "Combine lbs (S+B+D).",         icon: "🦍", achieved: false, tier: 1, maxTier: 4, nextTierGoal: 1000),
-        Award(title: "All-Rounder",     description: "Try different exercises.",     icon: "🎯", achieved: false, tier: 1, maxTier: 4, nextTierGoal: 5),
-        Award(title: "Gym Rat",         description: "Monthly workout frequency.",   icon: "🐀", achieved: false, tier: 1, maxTier: 3, nextTierGoal: 15),
-        Award(title: "Early Bird",      description: "Workout before 7AM.",          icon: "🌅", achieved: false, tier: 1, maxTier: 3, nextTierGoal: 10),
-        Award(title: "Night Owl",       description: "Workout after 9PM.",           icon: "🌙", achieved: false, tier: 1, maxTier: 3, nextTierGoal: 10),
-        Award(title: "Perfect Week",    description: "Workout 7 days in one week.",  icon: "💯", achieved: false)
+        Award(title: "10-Day Streak",   description: "Workout 10 days in a row.",   icon: "🔥"),
+        Award(title: "Workouts Logged", description: "Log workouts to level up.",    icon: "🏆", tier: 1, maxTier: 5, nextTierGoal: 50),
+        Award(title: "Bench Press PR",  description: "Increase bench weight.",       icon: "💪", tier: 1, maxTier: 4, nextTierGoal: nil),
+        Award(title: "Squat PR",        description: "Increase squat weight.",       icon: "🦵", tier: 1, maxTier: 3, nextTierGoal: nil),
+        Award(title: "Big Three Club",  description: "Combine lbs (S+B+D).",         icon: "🦍", tier: 1, maxTier: 4, nextTierGoal: 1000),
+        Award(title: "All-Rounder",     description: "Try different exercises.",     icon: "🎯", tier: 1, maxTier: 4, nextTierGoal: 5),
+        Award(title: "Gym Rat",         description: "Monthly workout frequency.",   icon: "🐀", tier: 1, maxTier: 3, nextTierGoal: 15),
+        Award(title: "Early Bird",      description: "Workout before 7AM.",          icon: "🌅", tier: 1, maxTier: 3, nextTierGoal: 10),
+        Award(title: "Night Owl",       description: "Workout after 9PM.",           icon: "🌙", tier: 1, maxTier: 3, nextTierGoal: 10),
+        Award(title: "Perfect Week",    description: "Workout 7 days in one week.",  icon: "💯")
     ]
 
     init() {
@@ -63,6 +62,11 @@ class AwardManager: ObservableObject {
     // MARK: - Goal Derivation
     private func goalForTier(_ tier: Int, title: String) -> Int? {
         if title == "Bench Press PR" || title == "Squat PR" { return nil }
+
+        if title == "Big Three Club" {
+            return 1000 + ((tier - 1) * 100)
+        }
+
         guard let base = baseGoals[title] else { return nil }
         var goal = Double(base)
         for _ in 1..<tier { goal *= 1.5 }
@@ -102,7 +106,6 @@ class AwardManager: ObservableObject {
             award.dateEarned          = savedState["dateEarned"] as? Date
             award.firstRecordedWeight = savedState["firstRecordedWeight"] as? Double
             award.nextTierGoal        = goalForTier(tier, title: award.title)
-            award.achieved            = false
             return award
         }
     }
@@ -130,22 +133,41 @@ class AwardManager: ObservableObject {
                 let benchWeights = sorted
                     .filter { $0.exercise.lowercased().contains("bench") }
                     .map { $0.weight }
-                if let maxW = benchWeights.max() {
-                    // Goal is always current max + 25
-                    currentVal = maxW
+                guard let maxW = benchWeights.max() else { continue }
+
+                // Capture baseline on first ever evaluation
+                if awards[i].firstRecordedWeight == nil {
+                    awards[i].firstRecordedWeight = maxW
                     awards[i].nextTierGoal = Int(maxW) + 25
                     awards[i].description = "Current goal: \(Int(maxW) + 25) lbs"
+                    continue
                 }
+
+                currentVal = maxW
+                // Only update the goal after a tier is awarded (lastAwardedTier tracks this)
+                if awards[i].nextTierGoal == nil {
+                    awards[i].nextTierGoal = Int(maxW) + 25
+                }
+                awards[i].description = "Current goal: \(awards[i].nextTierGoal ?? Int(maxW) + 25) lbs"
 
             case "Squat PR":
                 let squatWeights = sorted
                     .filter { $0.exercise.lowercased().contains("squat") }
                     .map { $0.weight }
-                if let maxW = squatWeights.max() {
-                    currentVal = maxW
+                guard let maxW = squatWeights.max() else { continue }
+
+                if awards[i].firstRecordedWeight == nil {
+                    awards[i].firstRecordedWeight = maxW
                     awards[i].nextTierGoal = Int(maxW) + 25
                     awards[i].description = "Current goal: \(Int(maxW) + 25) lbs"
+                    continue
                 }
+
+                currentVal = maxW
+                if awards[i].nextTierGoal == nil {
+                    awards[i].nextTierGoal = Int(maxW) + 25
+                }
+                awards[i].description = "Current goal: \(awards[i].nextTierGoal ?? Int(maxW) + 25) lbs"
 
             case "Big Three Club":
                 let s = entries.filter { $0.exercise.lowercased().contains("squat") }.map { $0.weight }.max() ?? 0
@@ -201,17 +223,9 @@ class AwardManager: ObservableObject {
                 break
             }
 
-            // DEMOTE tier if data no longer supports the previous tier's threshold
-            while awards[i].tier > 1 {
-                let previousGoal = Double(goalForTier(awards[i].tier - 1, title: awards[i].title) ?? 1)
-                if currentVal < previousGoal {
-                    awards[i].tier -= 1
-                } else {
-                    break
-                }
-            }
+            // Tiers never regress — no demotion logic
 
-            // For non-PR awards, recompute goal from tier
+            // For non-PR awards, recompute goal from current tier
             if awards[i].title != "Bench Press PR" && awards[i].title != "Squat PR" {
                 awards[i].nextTierGoal = goalForTier(awards[i].tier, title: awards[i].title)
             }
@@ -252,13 +266,13 @@ class AwardManager: ObservableObject {
             awards[index].tier += 1
         }
 
-        // For PR awards the next goal is always current max + 25,
-        // which will be recomputed on next evaluateAwards call
+        // For PR awards, set the next goal to current max + 25 on next evaluation
         if originalTitle != "Bench Press PR" && originalTitle != "Squat PR" {
             awards[index].nextTierGoal = goalForTier(awards[index].tier, title: originalTitle)
+        } else {
+            // Clear so next evaluateAwards call resets to new max + 25
+            awards[index].nextTierGoal = nil
         }
-
-        awards[index].achieved = false
 
         let nextGoalText: String
         if isMaxTier {
