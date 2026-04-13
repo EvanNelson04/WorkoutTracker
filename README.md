@@ -1,4 +1,4 @@
-# WorkoutTracker
+# WorkoutEvaluator
 
 **WorkoutTracker** is an iOS fitness application built with **Xcode (Swift / SwiftUI)** that allows users to log workouts by exercise and repetitions, track progress over 
 time, earn awards, and receive guided exercise suggestions with visual aids. The app is designed as a complete, connected fitness workflow suitable for a senior capstone 
