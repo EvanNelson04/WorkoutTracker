@@ -30,7 +30,7 @@ struct LoginView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 25))
                         .shadow(radius: 10)
 
-                    Text("WorkoutTracker")
+                    Text("WorkoutEvaluator")
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
